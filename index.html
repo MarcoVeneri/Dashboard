@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Percorso Lavoro">
+  <meta name="format-detection" content="telephone=no">
+  <title>Percorso Lavoro</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <main class="dashboard">
+      <header class="header">
+        <div class="header-copy">
+          <div class="eyebrow">
+            <span id="clock">--:--</span>
+            <span class="address-short">· Reggello → Firenze</span>
+            <span class="address-full">· Via J. F. Kennedy 9, Reggello → Via Panciatichi 17, Firenze</span>
+          </div>
+          <h1 id="greeting">Buongiorno Marco</h1>
+          <div id="refresh-meta" class="subtle">Configura TomTom per iniziare</div>
+        </div>
+        <div class="header-actions">
+          <button id="refresh-btn" class="circle-btn glass" type="button" aria-label="Aggiorna ora" title="Aggiorna ora">↻</button>
+          <button id="settings-btn" class="circle-btn glass" type="button" aria-label="Impostazioni" title="Impostazioni">⚙︎</button>
+        </div>
+      </header>
+
+      <section class="weather-card outlined" aria-label="Meteo">
+        <article class="weather-half">
+          <div class="weather-place">REGGELLO</div>
+          <div class="weather-row">
+            <div id="weather-start-icon" class="weather-icon" aria-hidden="true">—</div>
+            <div>
+              <div id="weather-start-temp" class="weather-temp">--°</div>
+              <div id="weather-start-desc" class="weather-desc">In attesa</div>
+            </div>
+          </div>
+        </article>
+        <article class="weather-half">
+          <div class="weather-place">FIRENZE</div>
+          <div class="weather-row">
+            <div id="weather-end-icon" class="weather-icon" aria-hidden="true">—</div>
+            <div>
+              <div id="weather-end-temp" class="weather-temp">--°</div>
+              <div id="weather-end-desc" class="weather-desc">In attesa</div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section id="best-card" class="route-card best-card">
+        <div class="route-top">
+          <div class="best-label"><span class="status-dot"></span>PERCORSO MIGLIORE</div>
+          <div id="best-badge" class="route-badge">A1 CONSENTITA</div>
+        </div>
+
+        <div class="time-line">
+          <div class="time-block">
+            <span id="fast-time" class="big-time">--</span>
+            <span class="min-label">min</span>
+          </div>
+          <div class="saving-block">
+            <div id="saving-value" class="saving">--</div>
+            <div id="saving-label" class="tiny">rispetto alla strada normale</div>
+          </div>
+        </div>
+
+        <div id="fast-traffic-bar" class="traffic-bar" role="img" aria-label="Stato traffico"></div>
+        <div class="route-meta">
+          <span>Reggello</span>
+          <span id="fast-status">In attesa</span>
+          <span>Firenze</span>
+        </div>
+
+        <button id="waze-fast" class="waze-btn waze-primary" type="button">
+          <span class="waze-mark">◉</span>
+          <span>Apri in Waze</span>
+          <span class="waze-tail">A1 →</span>
+        </button>
+      </section>
+
+      <section id="normal-card" class="route-card outlined">
+        <div class="normal-layout">
+          <div class="time-block normal-time-block">
+            <span id="normal-time" class="normal-time">--</span>
+            <span class="min-label small">min</span>
+          </div>
+          <div class="normal-info">
+            <div class="normal-title">Strada normale</div>
+            <div class="tiny">senza autostrada</div>
+            <div id="normal-traffic-bar" class="traffic-bar compact" role="img" aria-label="Stato traffico strada normale"></div>
+            <div id="normal-status" class="tiny traffic-copy">In attesa</div>
+          </div>
+        </div>
+
+        <button id="waze-normal" class="waze-btn waze-secondary" type="button">
+          <span class="waze-mark">◉</span>
+          <span>Apri in Waze</span>
+          <span class="waze-tail">No A1 →</span>
+        </button>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="settings-dialog" class="settings-dialog">
+    <form id="settings-form" method="dialog" class="settings-sheet">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="settings-heading">
+        <div>
+          <div class="settings-kicker">IMPOSTAZIONI</div>
+          <h2>TomTom</h2>
+        </div>
+        <button id="close-settings" class="circle-btn glass" type="button" aria-label="Chiudi">×</button>
+      </div>
+
+      <p class="settings-help">
+        Incolla la chiave TomTom. Viene salvata solo nel browser di questo dispositivo e non viene scritta nei file GitHub.
+      </p>
+
+      <label class="field-label" for="tomtom-key">API key TomTom</label>
+      <div class="key-row">
+        <input id="tomtom-key" class="key-input" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla qui la chiave">
+        <button id="toggle-key" class="small-btn" type="button">Mostra</button>
+      </div>
+
+      <div id="settings-message" class="settings-message" aria-live="polite"></div>
+
+      <button id="save-key" class="primary-btn" type="submit">Salva e verifica</button>
+      <button id="clear-key" class="danger-btn" type="button">Cancella chiave da questo dispositivo</button>
+
+      <div class="settings-note">
+        La chiave resta su questo iPhone/iPad finché non cancelli i dati del sito o usi la navigazione privata.
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
