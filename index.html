@@ -1,149 +1,369 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Percorso Lavoro">
-  <meta name="format-detection" content="telephone=no">
-  <title>Percorso Lavoro</title>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0f14" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mattino">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="icon" href="./icon-192.png" type="image/png">
+<title>Mattino · Traffico</title>
+<style>
+:root{
+  --bg:#f3f5f8;--panel:rgba(255,255,255,.78);--panelSolid:#fff;--ink:#0d1424;--muted:#707a8d;
+  --line:rgba(110,124,150,.20);--green:#22bb67;--green2:#079454;--red:#f15047;--red2:#c93232;
+  --orange:#ff912f;--blue:#197cff;--shadow:0 16px 45px rgba(30,45,72,.10);
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0c0f14;--panel:rgba(25,29,38,.78);--panelSolid:#171b23;--ink:#f4f7fb;--muted:#9aa5b8;
+    --line:rgba(255,255,255,.11);--shadow:0 20px 55px rgba(0,0,0,.30)}
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:
+  radial-gradient(circle at 80% -5%,rgba(255,198,88,.17),transparent 28%),
+  radial-gradient(circle at 5% 15%,rgba(59,126,255,.10),transparent 30%),var(--bg);
+  color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+body{min-height:100dvh;overflow-x:hidden}
+button,input,a{font:inherit}
+button,a{-webkit-tap-highlight-color:transparent}
+.app{width:min(100%,560px);margin:0 auto;min-height:100dvh;padding:
+  max(14px,env(safe-area-inset-top)) max(13px,env(safe-area-inset-right))
+  max(18px,env(safe-area-inset-bottom)) max(13px,env(safe-area-inset-left))}
+.header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:4px 4px 12px}
+.eyebrow{font-size:13px;color:var(--muted);font-weight:650}
+h1{font-size:40px;line-height:.96;letter-spacing:-.055em;margin:5px 0 8px;font-weight:820}
+.meta{font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:8px}
+.circle{width:45px;height:45px;border-radius:50%;border:1px solid var(--line);background:var(--panel);
+  color:var(--ink);display:grid;place-items:center;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35);cursor:pointer;font-size:20px}
+.circle:active{transform:scale(.97)}
+
+.weather{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.weatherCard{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:10px 12px;
+  display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:var(--shadow)}
+.weatherName{font-size:10px;font-weight:800;letter-spacing:.07em;color:var(--muted)}
+.weatherValue{font-size:25px;font-weight:820;margin-top:2px;letter-spacing:-.04em}
+.weatherIcon{font-size:27px}
+
+.decision{border-radius:28px;padding:18px;color:#fff;position:relative;overflow:hidden;margin-bottom:10px;box-shadow:0 20px 48px rgba(28,130,82,.20)}
+.decision.a1{background:linear-gradient(145deg,var(--green),var(--green2))}
+.decision.noa1{background:linear-gradient(145deg,var(--red),var(--red2));box-shadow:0 20px 48px rgba(196,49,46,.22)}
+.decision.tie{background:linear-gradient(145deg,#687386,#4f596a);box-shadow:0 20px 48px rgba(60,70,88,.18)}
+.decision.loading{background:linear-gradient(145deg,#748093,#5c6676)}
+.decision:after{content:"";position:absolute;width:230px;height:230px;border-radius:50%;right:-90px;top:-130px;background:rgba(255,255,255,.09)}
+.decisionTop{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+.decisionIcon{width:52px;height:52px;border-radius:17px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:27px}
+.decisionKicker{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.82}
+.decisionTitle{font-size:31px;font-weight:900;line-height:1;letter-spacing:-.05em;margin-top:2px}
+.decisionSub{font-size:13px;margin-top:6px;opacity:.95}
+.live{margin-left:auto;align-self:flex-start;border-radius:999px;padding:6px 8px;background:rgba(255,255,255,.15);font-size:9px;font-weight:800}
+
+.routes{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.route{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:15px;box-shadow:var(--shadow);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);min-height:205px}
+.route.recommended{outline:2px solid rgba(34,187,103,.68);outline-offset:-2px}
+.routeName{font-size:11px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.routeTime{font-size:52px;font-weight:900;letter-spacing:-.065em;line-height:.95;margin-top:10px}
+.routeUnit{font-size:12px;font-weight:750;color:var(--muted);margin-left:3px}
+.routeStatus{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;font-weight:850;border-radius:999px;padding:7px 9px}
+.ok{background:rgba(34,187,103,.12);color:#13884c}.warn{background:rgba(255,145,47,.14);color:#c56c18}.bad{background:rgba(241,80,71,.13);color:#c83b37}.neutral{background:rgba(110,124,150,.12);color:var(--muted)}
+.routeDetail{font-size:11px;color:var(--muted);line-height:1.35;margin-top:9px;min-height:30px}
+.diff{font-size:12px;font-weight:800;margin-top:7px}
+
+.trafficBar{height:7px;border-radius:999px;background:rgba(120,130,150,.13);overflow:hidden;margin-top:10px}
+.trafficFill{height:100%;width:0;border-radius:inherit;transition:width .35s ease;background:var(--green)}
+.trafficFill.warn{background:var(--orange)}.trafficFill.bad{background:var(--red)}
+
+.waze{display:flex;align-items:center;justify-content:center;text-decoration:none;min-height:54px;margin-top:10px;border-radius:19px;background:#0a76f6;color:#fff;font-weight:820;font-size:15px;box-shadow:0 15px 34px rgba(10,118,246,.20)}
+.note{font-size:10px;color:var(--muted);text-align:center;margin:8px 12px 0;line-height:1.35}
+.error{display:none;margin:0 0 10px;border:1px solid rgba(241,80,71,.24);background:rgba(241,80,71,.10);color:#bd3935;border-radius:15px;padding:9px 11px;font-size:11px;line-height:1.35}
+.error.show{display:block}
+
+dialog{width:min(calc(100% - 18px),470px);border:0;background:transparent;padding:0;color:var(--ink)}
+dialog::backdrop{background:rgba(7,11,19,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sheet{background:var(--panelSolid);border:1px solid var(--line);border-radius:27px;padding:17px;box-shadow:0 35px 90px rgba(0,0,0,.28)}
+.sheetHead{display:flex;align-items:center;justify-content:space-between}
+.sheetTitle{font-size:23px;font-weight:850}
+.sheet p{font-size:11px;color:var(--muted);line-height:1.45}
+label{display:block;font-size:10px;font-weight:820;margin:13px 0 6px}
+input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 11px;font-size:16px}
+.save{width:100%;height:48px;border:0;border-radius:14px;background:var(--ink);color:var(--panelSolid);font-weight:820;margin-top:14px}
+.sheetMsg{font-size:10px;color:var(--muted);margin-top:8px}.version{text-align:center;color:var(--muted);font-size:9px;margin-top:12px}
+
+@media(max-height:720px){
+ .app{padding-top:max(7px,env(safe-area-inset-top))}.header{padding-bottom:8px}h1{font-size:33px;margin:3px 0 5px}
+ .weather{margin-bottom:7px}.weatherCard{padding:7px 10px}.weatherValue{font-size:21px}.weatherIcon{font-size:22px}
+ .decision{padding:13px;border-radius:22px;margin-bottom:7px}.decisionIcon{width:43px;height:43px;border-radius:13px;font-size:22px}
+ .decisionTitle{font-size:25px}.decisionSub{font-size:11px;margin-top:4px}
+ .routes{gap:7px}.route{padding:12px;border-radius:20px;min-height:175px}.routeTime{font-size:43px;margin-top:7px}
+ .routeStatus{margin-top:7px;padding:6px 8px;font-size:10px}.routeDetail{font-size:10px;margin-top:6px}.trafficBar{margin-top:7px}
+ .waze{min-height:47px;margin-top:7px}.note{margin-top:5px}
+}
+@media(min-width:760px){
+ .app{width:min(100%,920px);padding:24px}.routes{gap:14px}.route{min-height:250px;padding:20px}.routeTime{font-size:72px}.decisionTitle{font-size:38px}
+}
+</style>
 </head>
 <body>
-  <div id="app" class="app-shell">
-    <main class="dashboard">
-      <header class="header">
-        <div class="header-copy">
-          <div class="eyebrow">
-            <span id="clock">--:--</span>
-            <span class="address-short">· Reggello → Firenze</span>
-            <span class="address-full">· Via J. F. Kennedy 9, Reggello → Via Panciatichi 17, Firenze</span>
-          </div>
-          <h1 id="greeting">Buongiorno Marco</h1>
-          <div id="refresh-meta" class="subtle">Configura TomTom per iniziare</div>
-        </div>
-        <div class="header-actions">
-          <button id="refresh-btn" class="circle-btn glass" type="button" aria-label="Aggiorna ora" title="Aggiorna ora">↻</button>
-          <button id="settings-btn" class="circle-btn glass" type="button" aria-label="Impostazioni" title="Impostazioni">⚙︎</button>
-        </div>
-      </header>
+<main class="app">
+  <header class="header">
+    <div>
+      <div class="eyebrow">Reggello → Firenze · Via Panciatichi</div>
+      <h1 id="greeting">Buongiorno</h1>
+      <div id="meta" class="meta">Aggiornamento in corso…</div>
+    </div>
+    <div class="actions">
+      <button id="refreshBtn" class="circle" type="button" aria-label="Aggiorna">↻</button>
+      <button id="settingsBtn" class="circle" type="button" aria-label="Impostazioni">⚙︎</button>
+    </div>
+  </header>
 
-      <section class="weather-card outlined" aria-label="Meteo">
-        <article class="weather-half">
-          <div class="weather-place">REGGELLO</div>
-          <div class="weather-row">
-            <div id="weather-start-icon" class="weather-icon" aria-hidden="true">—</div>
-            <div>
-              <div id="weather-start-temp" class="weather-temp">--°</div>
-              <div id="weather-start-desc" class="weather-desc">In attesa</div>
-            </div>
-          </div>
-        </article>
-        <article class="weather-half">
-          <div class="weather-place">FIRENZE</div>
-          <div class="weather-row">
-            <div id="weather-end-icon" class="weather-icon" aria-hidden="true">—</div>
-            <div>
-              <div id="weather-end-temp" class="weather-temp">--°</div>
-              <div id="weather-end-desc" class="weather-desc">In attesa</div>
-            </div>
-          </div>
-        </article>
-      </section>
+  <section class="weather">
+    <div class="weatherCard">
+      <div><div class="weatherName">REGGELLO</div><div id="regTemp" class="weatherValue">--°</div></div>
+      <div id="regIcon" class="weatherIcon">—</div>
+    </div>
+    <div class="weatherCard">
+      <div><div class="weatherName">FIRENZE</div><div id="firTemp" class="weatherValue">--°</div></div>
+      <div id="firIcon" class="weatherIcon">—</div>
+    </div>
+  </section>
 
-      <section id="best-card" class="route-card best-card">
-        <div class="route-top">
-          <div class="best-label"><span class="status-dot"></span>PERCORSO MIGLIORE</div>
-          <div id="best-badge" class="route-badge">A1 CONSENTITA</div>
-        </div>
+  <div id="errorBox" class="error"></div>
 
-        <div class="time-line">
-          <div class="time-block">
-            <span id="fast-time" class="big-time">--</span>
-            <span class="min-label">min</span>
-          </div>
-          <div class="saving-block">
-            <div id="saving-value" class="saving">--</div>
-            <div id="saving-label" class="tiny">rispetto alla strada normale</div>
-          </div>
-        </div>
+  <section class="routes">
+    <article id="a1Card" class="route">
+      <div class="routeName">A1 · AUTOSTRADA</div>
+      <div><span id="a1Time" class="routeTime">--</span><span class="routeUnit">min</span></div>
+      <div id="a1Status" class="routeStatus neutral">IN ATTESA</div>
+      <div id="a1Detail" class="routeDetail">Traffico A1 in caricamento…</div>
+      <div class="trafficBar"><div id="a1Bar" class="trafficFill"></div></div>
+      <div id="a1Diff" class="diff"></div>
+    </article>
 
-        <div id="fast-traffic-bar" class="traffic-bar" role="img" aria-label="Stato traffico"></div>
-        <div class="route-meta">
-          <span>Reggello</span>
-          <span id="fast-status">In attesa</span>
-          <span>Firenze</span>
-        </div>
+    <article id="normalCard" class="route">
+      <div class="routeName">NO A1 · NORMALE</div>
+      <div><span id="normalTime" class="routeTime">--</span><span class="routeUnit">min</span></div>
+      <div id="normalStatus" class="routeStatus neutral">ALTERNATIVA</div>
+      <div id="normalDetail" class="routeDetail">Percorso senza autostrada</div>
+      <div class="trafficBar"><div id="normalBar" class="trafficFill"></div></div>
+      <div id="normalDiff" class="diff"></div>
+    </article>
+  </section>
 
-        <button id="waze-fast" class="waze-btn waze-primary" type="button">
-          <span class="waze-mark">◉</span>
-          <span>Apri in Waze</span>
-          <span class="waze-tail">A1 →</span>
-        </button>
-      </section>
+  <a class="waze" href="https://waze.com/ul?q=Via%20Panciatichi%2017%2C%20Firenze%2C%20Italia&navigate=yes" target="_blank" rel="noopener">Apri Waze verso il lavoro</a>
+  <div class="note">La dashboard decide A1 / No A1 con TomTom Traffic. Waze viene aperto solo per la navigazione e può ricalcolare autonomamente il percorso.</div>
+</main>
 
-      <section id="normal-card" class="route-card outlined">
-        <div class="normal-layout">
-          <div class="time-block normal-time-block">
-            <span id="normal-time" class="normal-time">--</span>
-            <span class="min-label small">min</span>
-          </div>
-          <div class="normal-info">
-            <div class="normal-title">Strada normale</div>
-            <div class="tiny">senza autostrada</div>
-            <div id="normal-traffic-bar" class="traffic-bar compact" role="img" aria-label="Stato traffico strada normale"></div>
-            <div id="normal-status" class="tiny traffic-copy">In attesa</div>
-          </div>
-        </div>
+<dialog id="settingsDialog">
+  <form id="settingsForm" class="sheet" method="dialog">
+    <div class="sheetHead">
+      <div class="sheetTitle">Impostazioni</div>
+      <button id="closeBtn" class="circle" type="button" style="width:38px;height:38px">×</button>
+    </div>
+    <p>La chiave TomTom viene salvata solo nel browser di questo dispositivo. Non viene inserita nei file GitHub.</p>
+    <label for="tomtomKey">Chiave API TomTom</label>
+    <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
+    <button class="save" type="submit">Salva e verifica</button>
+    <div id="sheetMsg" class="sheetMsg"></div>
+    <div class="version">Mattino Traffico · versione 30.0 · single-file JS/CSS</div>
+  </form>
+</dialog>
 
-        <button id="waze-normal" class="waze-btn waze-secondary" type="button">
-          <span class="waze-mark">◉</span>
-          <span>Apri in Waze</span>
-          <span class="waze-tail">No A1 →</span>
-        </button>
-      </section>
-    </main>
-  </div>
+<script>
+(()=>{
+"use strict";
+const BUILD="30.0";
+const $=s=>document.querySelector(s);
+const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
+const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
+const INCISA={lat:43.66393,lon:11.45768};
+const FIRENZE_SUD={lat:43.74225,lon:11.28054};
+const WEATHER={reg:{lat:43.6817,lon:11.5299},fir:{lat:43.7696,lon:11.2558}};
+const KEY_STORE="morning.tomtomApiKey.v30";
+const POS_STORE="morning.positions.v30";
+const DATA_STORE="morning.lastTraffic.v30";
+const REFRESH_MS=5*60*1000;
 
-  <dialog id="settings-dialog" class="settings-dialog">
-    <form id="settings-form" method="dialog" class="settings-sheet">
-      <div class="sheet-handle" aria-hidden="true"></div>
-      <div class="settings-heading">
-        <div>
-          <div class="settings-kicker">IMPOSTAZIONI</div>
-          <h2>TomTom</h2>
-        </div>
-        <button id="close-settings" class="circle-btn glass" type="button" aria-label="Chiudi">×</button>
-      </div>
+const ui={
+ greeting:$("#greeting"),meta:$("#meta"),refresh:$("#refreshBtn"),settings:$("#settingsBtn"),error:$("#errorBox"),
+ a1Card:$("#a1Card"),normalCard:$("#normalCard"),a1Time:$("#a1Time"),normalTime:$("#normalTime"),
+ a1Status:$("#a1Status"),normalStatus:$("#normalStatus"),a1Detail:$("#a1Detail"),normalDetail:$("#normalDetail"),
+ a1Bar:$("#a1Bar"),normalBar:$("#normalBar"),a1Diff:$("#a1Diff"),normalDiff:$("#normalDiff"),
+ regTemp:$("#regTemp"),regIcon:$("#regIcon"),firTemp:$("#firTemp"),firIcon:$("#firIcon"),
+ dialog:$("#settingsDialog"),form:$("#settingsForm"),close:$("#closeBtn"),key:$("#tomtomKey"),sheetMsg:$("#sheetMsg")
+};
 
-      <p class="settings-help">
-        Incolla la chiave TomTom. Viene salvata solo nel browser di questo dispositivo e non viene scritta nei file GitHub.
-      </p>
+let busy=false,timer=null;
 
-      <label class="field-label" for="tomtom-key">API key TomTom</label>
-      <div class="key-row">
-        <input id="tomtom-key" class="key-input" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla qui la chiave">
-        <button id="toggle-key" class="small-btn" type="button">Mostra</button>
-      </div>
+function clock(d=new Date()){
+ return new Intl.DateTimeFormat("it-IT",{hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d);
+}
+function greeting(){
+ const h=Number(new Intl.DateTimeFormat("en",{hour:"2-digit",hourCycle:"h23",timeZone:"Europe/Rome"}).format(new Date()));
+ ui.greeting.textContent=h<12?"Buongiorno":h<18?"Buon pomeriggio":"Buonasera";
+}
+function showError(msg=""){ui.error.textContent=msg;ui.error.classList.toggle("show",!!msg)}
+function setStatus(el,text,kind){el.textContent=text;el.className="routeStatus "+kind}
+function setBar(el,pct,kind){el.style.width=Math.max(3,Math.min(100,pct))+"%";el.className="trafficFill "+(kind||"")}
 
-      <div id="settings-message" class="settings-message" aria-live="polite"></div>
+function migrateKey(){
+ let key=localStorage.getItem(KEY_STORE)||localStorage.getItem("commute.tomtomApiKey.v1")||"";
+ if(!key){
+  for(const old of ["morningCfgV25","morningMilanoV23","morningMilanoV22","morningMilanoV21","morningMilanoV20"]){
+   try{const o=JSON.parse(localStorage.getItem(old)||"{}");if(o.tomtom){key=o.tomtom;break}}catch(e){}
+  }
+ }
+ if(key)localStorage.setItem(KEY_STORE,key);
+ return key;
+}
+function getKey(){return localStorage.getItem(KEY_STORE)||migrateKey()||""}
 
-      <button id="save-key" class="primary-btn" type="submit">Salva e verifica</button>
-      <button id="clear-key" class="danger-btn" type="button">Cancella chiave da questo dispositivo</button>
+async function geocode(address){
+ const key=getKey();
+ const u="https://api.tomtom.com/search/2/geocode/"+encodeURIComponent(address)+".json?key="+encodeURIComponent(key)+"&limit=1&countrySet=IT&language=it-IT";
+ const r=await fetch(u,{cache:"no-store"});
+ if(!r.ok)throw new Error("TomTom geocoding HTTP "+r.status);
+ const j=await r.json();
+ if(!j.results?.length)throw new Error("Indirizzo non trovato");
+ return j.results[0].position;
+}
+async function positions(){
+ try{
+  const p=JSON.parse(localStorage.getItem(POS_STORE)||"null");
+  if(p?.home?.lat&&p?.work?.lat)return p;
+ }catch(e){}
+ const [home,work]=await Promise.all([geocode(HOME_ADDR),geocode(WORK_ADDR)]);
+ const p={home,work};localStorage.setItem(POS_STORE,JSON.stringify(p));return p;
+}
+async function route(points,{avoidMotorways=false}={}){
+ const key=getKey();
+ const locs=points.map(p=>`${p.lat},${p.lon}`).join(":");
+ const q=new URLSearchParams({
+  key,traffic:"true",travelMode:"car",routeType:"fastest",
+  computeTravelTimeFor:"all",routeRepresentation:"summaryOnly",
+  sectionType:"traffic",departAt:"now"
+ });
+ if(avoidMotorways)q.set("avoid","motorways");
+ const r=await fetch(`https://api.tomtom.com/routing/1/calculateRoute/${locs}/json?${q}`,{cache:"no-store"});
+ if(!r.ok){
+  let m="";try{const j=await r.json();m=j?.detailedError?.message||j?.error?.description||""}catch(e){}
+  throw new Error(`TomTom Routing ${r.status}${m?": "+m:""}`);
+ }
+ const j=await r.json(),s=j.routes?.[0]?.summary;
+ if(!s)throw new Error("TomTom non ha restituito un percorso");
+ return s;
+}
+function mins(sec){return Math.max(1,Math.round(Number(sec||0)/60))}
+function parseSummary(s){
+ const current=mins(s.travelTimeInSeconds);
+ const delay=Math.max(0,mins(s.trafficDelayInSeconds||0)-1); // mins() floors min 1: compensate when 0
+ const delayReal=Math.max(0,Math.round(Number(s.trafficDelayInSeconds||0)/60));
+ const noTraffic=s.noTrafficTravelTimeInSeconds?mins(s.noTrafficTravelTimeInSeconds):Math.max(1,current-delayReal);
+ const ratio=current/Math.max(1,noTraffic);
+ return {current,delay:delayReal,noTraffic,ratio};
+}
+function a1Level(x){
+ if(x.delay>=30||x.ratio>=1.65)return {text:"BLOCCATA",kind:"bad",icon:"⛔"};
+ if(x.delay>=15||x.ratio>=1.40)return {text:"CODA PESANTE",kind:"bad",icon:"🔴"};
+ if(x.delay>=7||x.ratio>=1.20)return {text:"RALLENTATA",kind:"warn",icon:"🟠"};
+ return {text:"SCORREVOLE",kind:"ok",icon:"🟢"};
+}
+function normalLevel(x){
+ if(x.delay>=20||x.ratio>=1.45)return {text:"RALLENTATA",kind:"bad"};
+ if(x.delay>=8||x.ratio>=1.22)return {text:"TRAFFICO",kind:"warn"};
+ return {text:"SCORREVOLE",kind:"ok"};
+}
+function choice(a1,norm){
+ const d=a1.current-norm.current;
+ if(d<=-2)return "A1";
+ if(d>=2)return "NOA1";
+ return "TIE";
+}
+function renderTraffic(data,state="live"){
+ const {a1,norm}=data, c=choice(a1,norm), al=a1Level(a1), nl=normalLevel(norm);
+ const diff=Math.abs(a1.current-norm.current);
 
-      <div class="settings-note">
-        La chiave resta su questo iPhone/iPad finché non cancelli i dati del sito o usi la navigazione privata.
-      </div>
-    </form>
-  </dialog>
+ ui.a1Time.textContent=a1.current; ui.normalTime.textContent=norm.current;
+ setStatus(ui.a1Status,al.icon+" "+al.text,al.kind);
+ setStatus(ui.normalStatus,nl.text,nl.kind);
+ ui.a1Detail.textContent=a1.delay?`+${a1.delay} min per traffico · senza traffico ~${a1.noTraffic} min`:`Nessun ritardo significativo · ~${a1.noTraffic} min senza traffico`;
+ ui.normalDetail.textContent=norm.delay?`+${norm.delay} min per traffico · senza traffico ~${norm.noTraffic} min`:`Percorso senza autostrada · ~${norm.noTraffic} min`;
+ setBar(ui.a1Bar,Math.min(100,15+a1.delay*2.7),al.kind);
+ setBar(ui.normalBar,Math.min(100,15+norm.delay*2.7),nl.kind);
+ ui.a1Card.classList.toggle("recommended",c==="A1");
+ ui.normalCard.classList.toggle("recommended",c==="NOA1");
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+ if(c==="A1"){ui.a1Diff.textContent=`${diff} min più veloce`;ui.normalDiff.textContent=`${diff} min più lenta`}
+ else if(c==="NOA1"){ui.a1Diff.textContent=`${diff} min più lenta`;ui.normalDiff.textContent=`${diff} min più veloce`}
+ else{ui.a1Diff.textContent="Tempi equivalenti";ui.normalDiff.textContent="Tempi equivalenti"}
+}
+function loadLast(){
+ try{const d=JSON.parse(localStorage.getItem(DATA_STORE)||"null");if(d?.a1&&d?.norm){renderTraffic(d,"stale");return true}}catch(e){}
+ return false;
+}
+async function refreshTraffic(){
+ if(!getKey()){if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");return false}
+ const p=await positions();
+ // A1 is forced through both toll-plaza waypoints; the normal route explicitly avoids motorways.
+ const [a1s,norms]=await Promise.all([
+  route([p.home,INCISA,FIRENZE_SUD,p.work]),
+  route([p.home,p.work],{avoidMotorways:true})
+ ]);
+ const data={a1:parseSummary(a1s),norm:parseSummary(norms),ts:Date.now()};
+ localStorage.setItem(DATA_STORE,JSON.stringify(data));renderTraffic(data,"live");return true;
+}
 
-  <script src="./app.js" defer></script>
+function weatherIcon(code){
+ code=Number(code);if(code===0)return"☀️";if([1,2].includes(code))return"🌤️";if(code===3)return"☁️";
+ if([45,48].includes(code))return"🌫️";if([51,53,55,56,57].includes(code))return"🌦️";
+ if([61,63,65,66,67,80,81,82].includes(code))return"🌧️";if([71,73,75,77,85,86].includes(code))return"🌨️";
+ if([95,96,99].includes(code))return"⛈️";return"🌥️";
+}
+async function weather(point){
+ const q=new URLSearchParams({latitude:point.lat,longitude:point.lon,current:"temperature_2m,weather_code",timezone:"Europe/Rome"});
+ const r=await fetch("https://api.open-meteo.com/v1/forecast?"+q,{cache:"no-store"});
+ if(!r.ok)throw new Error("Open-Meteo HTTP "+r.status);const j=await r.json();
+ return {temp:Math.round(j.current.temperature_2m),icon:weatherIcon(j.current.weather_code)};
+}
+async function refreshWeather(){
+ const [r,f]=await Promise.all([weather(WEATHER.reg),weather(WEATHER.fir)]);
+ ui.regTemp.textContent=r.temp+"°";ui.regIcon.textContent=r.icon;ui.firTemp.textContent=f.temp+"°";ui.firIcon.textContent=f.icon;
+}
+async function refreshAll(){
+ if(busy)return;busy=true;ui.refresh.textContent="…";ui.refresh.disabled=true;showError("");
+ const errs=[];
+ const traffic=refreshTraffic().catch(e=>{errs.push(e.message||"Traffico non disponibile");loadLast();return false});
+ const met=refreshWeather().catch(e=>{errs.push("Meteo non disponibile");return false});
+ await Promise.all([traffic,met]);
+ const next=new Date(Date.now()+REFRESH_MS);ui.meta.textContent=`Agg. ${clock()} · prossimo ${clock(next)}`;
+ if(errs.length)showError([...new Set(errs)].join(" · "));
+ busy=false;ui.refresh.textContent="↻";ui.refresh.disabled=false;
+}
+function openSettings(){ui.key.value=getKey();ui.sheetMsg.textContent="";ui.dialog.showModal()}
+ui.settings.addEventListener("click",openSettings);ui.close.addEventListener("click",()=>ui.dialog.close());
+ui.refresh.addEventListener("click",refreshAll);
+ui.form.addEventListener("submit",async e=>{
+ e.preventDefault();const k=ui.key.value.trim();
+ if(!k){ui.sheetMsg.textContent="Inserisci la chiave TomTom.";return}
+ localStorage.setItem(KEY_STORE,k);localStorage.removeItem(POS_STORE);ui.sheetMsg.textContent="Salvata. Verifico…";
+ try{await refreshAll();ui.sheetMsg.textContent="Chiave salvata.";setTimeout(()=>ui.dialog.close(),450)}
+ catch(e){ui.sheetMsg.textContent=e.message||"Verifica non riuscita"}
+});
+ui.dialog.addEventListener("click",e=>{const r=ui.dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)ui.dialog.close()});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshAll()});
+
+greeting();setInterval(greeting,60000);loadLast();refreshAll();timer=setInterval(refreshAll,REFRESH_MS);
+if(!getKey())setTimeout(openSettings,350);
+})();
+</script>
 </body>
 </html>

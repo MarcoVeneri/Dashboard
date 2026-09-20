@@ -1,18 +1,24 @@
 {
-  "name": "Percorso Lavoro",
-  "short_name": "Percorso",
+  "name": "Mattino Traffico",
+  "short_name": "Mattino",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f2f2f7",
-  "theme_color": "#f2f2f7",
-  "description": "Dashboard personale per confrontare A1 e strada normale tra Reggello e Firenze.",
+  "background_color": "#f3f5f8",
+  "theme_color": "#f4f6f9",
+  "description": "Dashboard traffico Reggello-Firenze: confronto A1 e strada normale.",
   "icons": [
     {
-      "src": "./icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
