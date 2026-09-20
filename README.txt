@@ -24,3 +24,5 @@ v31 iPHONE CLEAN
 - Aprire UNA VOLTA: reset-v31.html
 - La pagina elimina vecchi Service Worker e Cache Storage e apre v31.html.
 - Da quel momento usare v31.html oppure reinstallare "Aggiungi a Home".
+
+Layout v31.1: A1 e NO A1 sono impilati verticalmente, come nella dashboard treni.
