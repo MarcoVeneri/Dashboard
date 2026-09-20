@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="it"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reset Mattino v31</title>
+<style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:30px;background:#f4f6f9;color:#111}
+.box{max-width:520px;margin:auto;padding:22px;border-radius:22px;background:white;border:1px solid #ddd}
+</style>
+</head><body><div class="box"><h2>Pulizia Mattino v31</h2><p id="s">Pulizia cache in corso…</p></div>
+<script>
+(async function(){
+ try{
+   if("serviceWorker" in navigator){
+     const regs=await navigator.serviceWorker.getRegistrations();
+     await Promise.all(regs.map(r=>r.unregister()));
+   }
+   if("caches" in window){
+     const keys=await caches.keys();
+     await Promise.all(keys.map(k=>caches.delete(k)));
+   }
+ }catch(e){}
+ document.getElementById("s").textContent="Pulizia completata. Apro la versione v31…";
+ setTimeout(()=>location.replace("./v31.html?v=31&t="+Date.now()),700);
+})();
+</script></body></html>

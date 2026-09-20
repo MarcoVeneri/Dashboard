@@ -1,22 +1,26 @@
-MATTINO TRAFFICO — v30
+MATTINO TRAFFICO — v31 iPhone-safe
 
-Carica tutti questi file nella root del repository GitHub Pages:
-- index.html
-- manifest.webmanifest
-- icon-180.png
-- icon-192.png
-- icon-512.png
-- .nojekyll
+Questa build mantiene la logica v30 che funziona su PC, ma elimina i punti più delicati su iPhone:
+- URL nuovo v31.html per evitare la cache della vecchia PWA
+- nessun Service Worker
+- cache HTML disabilitata
+- impostazioni senza tag <dialog>
+- localStorage protetto
+- sintassi JavaScript più compatibile
+- errori rete/CORS mostrati direttamente a schermo
+- manifest con start_url v31.html?build=31
 
-Non c'è Service Worker: scelta voluta per evitare vecchie versioni in cache su iPhone.
+Dopo aver caricato TUTTI i file su GitHub, apri una volta:
+https://TUO-UTENTE.github.io/NOME-REPO/v31.html
 
-Funzionamento:
-- A1: percorso forzato attraverso i caselli Incisa-Reggello e Firenze Sud.
-- NO A1: percorso TomTom con avoid=motorways.
-- TomTom Traffic calcola tempi e ritardo live.
-- Open-Meteo gestisce Reggello e Firenze.
-- Aggiornamento automatico ogni 5 minuti.
-- Waze è usato solo per aprire la navigazione, perché non può essere usato come fonte dati embedded in questa PWA.
+Se il repository è il sito principale username.github.io:
+https://TUO-UTENTE.github.io/v31.html
 
-La chiave TomTom non è nei file: viene salvata localmente nel browser.
-La nuova app prova anche a recuperare automaticamente la chiave dalle precedenti versioni sullo stesso dominio.
+Se vedi in alto 'v31.0', stai usando sicuramente questa build.
+
+
+v31 iPHONE CLEAN
+- Caricare TUTTI i file sostituendo quelli vecchi.
+- Aprire UNA VOLTA: reset-v31.html
+- La pagina elimina vecchi Service Worker e Cache Storage e apre v31.html.
+- Da quel momento usare v31.html oppure reinstallare "Aggiungi a Home".
