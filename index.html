@@ -127,7 +127,7 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <div>
       <div class="eyebrow">Reggello → Firenze · Via Panciatichi</div>
       <h1 id="greeting">Buongiorno</h1>
-      <div id="meta" class="meta">Aggiornamento in corso…</div>
+      <div id="meta" class="meta">Traffico live · aggiornamento automatico</div>
     </div>
     <div class="actions">
       <button id="refreshBtn" class="circle" type="button" aria-label="Aggiorna">↻</button>
@@ -147,6 +147,18 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
   </section>
 
   <div id="errorBox" class="error"></div>
+
+  <section id="decision" class="decision loading" aria-live="polite">
+    <div class="decisionTop">
+      <div id="decisionIcon" class="decisionIcon">↻</div>
+      <div>
+        <div class="decisionKicker">SCELTA CONSIGLIATA</div>
+        <div id="decisionTitle" class="decisionTitle">CONTROLLO TRAFFICO</div>
+        <div id="decisionSub" class="decisionSub">Confronto A1 e strada normale…</div>
+      </div>
+      <div id="decisionLive" class="live">LIVE</div>
+    </div>
+  </section>
 
   <section class="routes">
     <article id="a1Card" class="route">
@@ -183,14 +195,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 32.1 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 33.0 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="32.1";
+const BUILD="33.0";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -204,6 +216,7 @@ const REFRESH_MS=5*60*1000;
 
 const ui={
  greeting:$("#greeting"),meta:$("#meta"),refresh:$("#refreshBtn"),settings:$("#settingsBtn"),error:$("#errorBox"),
+ decision:$("#decision"),decisionIcon:$("#decisionIcon"),decisionTitle:$("#decisionTitle"),decisionSub:$("#decisionSub"),decisionLive:$("#decisionLive"),
  a1Card:$("#a1Card"),normalCard:$("#normalCard"),a1Time:$("#a1Time"),normalTime:$("#normalTime"),a1Eta:$("#a1Eta"),normalEta:$("#normalEta"),
  a1Status:$("#a1Status"),normalStatus:$("#normalStatus"),a1Detail:$("#a1Detail"),normalDetail:$("#normalDetail"),
  a1Bar:$("#a1Bar"),normalBar:$("#normalBar"),a1Diff:$("#a1Diff"),normalDiff:$("#normalDiff"),
@@ -314,6 +327,8 @@ function normalLevel(x){
  return {text:"SCORREVOLE",kind:"ok"};
 }
 function choice(a1,norm){
+ const blocked=a1.delay>=30||a1.ratio>=1.65;
+ if(blocked)return "NOA1";
  const d=a1.current-norm.current;
  if(d<=-2)return "A1";
  if(d>=2)return "NOA1";
@@ -336,9 +351,24 @@ function renderTraffic(data,state="live"){
  ui.a1Card.classList.toggle("recommended",c==="A1");
  ui.normalCard.classList.toggle("recommended",c==="NOA1");
 
- if(c==="A1"){ui.a1Diff.textContent=`${diff} min più veloce`;ui.normalDiff.textContent=`${diff} min più lenta`}
- else if(c==="NOA1"){ui.a1Diff.textContent=`${diff} min più lenta`;ui.normalDiff.textContent=`${diff} min più veloce`}
- else{ui.a1Diff.textContent="Tempi equivalenti";ui.normalDiff.textContent="Tempi equivalenti"}
+ ui.decision.className="decision "+(c==="A1"?"a1":c==="NOA1"?"noa1":"tie");
+ ui.decisionLive.textContent=state==="live"?"LIVE":"ULTIMO DATO";
+ if(c==="A1"){
+   ui.decisionIcon.textContent="🛣️";
+   ui.decisionTitle.textContent="PRENDI A1";
+   ui.decisionSub.textContent=`A1 ${a1.current} min · normale ${norm.current} min · risparmi ${diff} min`;
+   ui.a1Diff.textContent=`${diff} min più veloce`;ui.normalDiff.textContent=`${diff} min più lenta`;
+ } else if(c==="NOA1"){
+   ui.decisionIcon.textContent=al.text==="BLOCCATA"?"⛔":"↪️";
+   ui.decisionTitle.textContent=al.text==="BLOCCATA"?"A1 BLOCCATA · EVITALA":"EVITA A1";
+   ui.decisionSub.textContent=`Normale ${norm.current} min · A1 ${a1.current} min${diff?" · risparmi "+diff+" min":""}`;
+   ui.a1Diff.textContent=`${diff} min più lenta`;ui.normalDiff.textContent=`${diff} min più veloce`;
+ } else {
+   ui.decisionIcon.textContent="≈";
+   ui.decisionTitle.textContent="TEMPI SIMILI";
+   ui.decisionSub.textContent=`A1 ${a1.current} min · normale ${norm.current} min`;
+   ui.a1Diff.textContent="Tempi equivalenti";ui.normalDiff.textContent="Tempi equivalenti";
+ }
 }
 function loadLast(){
  try{const d=JSON.parse(safeGet(DATA_STORE)||"null");if(d && d.a1 && d.norm){renderTraffic(d,"stale");return true}}catch(e){}
@@ -380,7 +410,7 @@ async function refreshAll(){
  const traffic=refreshTraffic().catch(e=>{errs.push(e.message||"Traffico non disponibile");loadLast();return false});
  const met=refreshWeather().catch(e=>{errs.push("Meteo non disponibile");return false});
  await Promise.all([traffic,met]);
- const next=new Date(Date.now()+REFRESH_MS);ui.meta.textContent=`v${BUILD} · Agg. ${clock()} · prossimo ${clock(next)}`;
+ ui.meta.textContent="Traffico live · aggiornamento automatico";
  if(errs.length)showError([...new Set(errs)].join(" · "));
  busy=false;ui.refresh.textContent="↻";ui.refresh.disabled=false;
 }
