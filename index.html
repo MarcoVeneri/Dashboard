@@ -307,6 +307,12 @@ async function route(points,{avoidMotorways=false}={}){
  return s;
 }
 function mins(sec){return Math.max(1,Math.round(Number(sec||0)/60))}
+function formatDuration(total){
+ total=Math.max(0,Math.round(Number(total)||0));
+ if(total<60)return {value:String(total),unit:"min",long:total+" min"};
+ const h=Math.floor(total/60),m=total%60;
+ return {value:h+" ora"+(h!==1?"e":"")+(m?" "+String(m).padStart(2,"0"):""),unit:m?"min":"",long:h+" ora"+(h!==1?"e":"")+(m?" e "+m+" minuti":"")};
+}
 function parseSummary(s){
  const current=mins(s.travelTimeInSeconds);
  const delay=Math.max(0,mins(s.trafficDelayInSeconds||0)-1); // mins() floors min 1: compensate when 0
@@ -338,7 +344,11 @@ function renderTraffic(data,state="live"){
  const {a1,norm}=data, c=choice(a1,norm), al=a1Level(a1), nl=normalLevel(norm);
  const diff=Math.abs(a1.current-norm.current);
 
- ui.a1Time.textContent=a1.current; ui.normalTime.textContent=norm.current;
+ const a1Fmt=formatDuration(a1.current), normFmt=formatDuration(norm.current);
+ ui.a1Time.textContent=a1Fmt.value; ui.normalTime.textContent=normFmt.value;
+ const a1Unit=ui.a1Time.nextElementSibling, normUnit=ui.normalTime.nextElementSibling;
+ if(a1Unit)a1Unit.textContent=a1Fmt.unit;
+ if(normUnit)normUnit.textContent=normFmt.unit;
  const baseTs=Number(data.ts)||Date.now();
  ui.a1Eta.innerHTML="<span>ARRIVO</span>"+etaClock(a1.current,baseTs);
  ui.normalEta.innerHTML="<span>ARRIVO</span>"+etaClock(norm.current,baseTs);
@@ -356,17 +366,17 @@ function renderTraffic(data,state="live"){
  if(c==="A1"){
    ui.decisionIcon.textContent="🛣️";
    ui.decisionTitle.textContent="PRENDI A1";
-   ui.decisionSub.textContent=`A1 ${a1.current} min · normale ${norm.current} min · risparmi ${diff} min`;
+   ui.decisionSub.textContent=`A1 ${formatDuration(a1.current).long} · normale ${formatDuration(norm.current).long} · risparmi ${diff} min`;
    ui.a1Diff.textContent=`${diff} min più veloce`;ui.normalDiff.textContent=`${diff} min più lenta`;
  } else if(c==="NOA1"){
    ui.decisionIcon.textContent=al.text==="BLOCCATA"?"⛔":"↪️";
    ui.decisionTitle.textContent=al.text==="BLOCCATA"?"A1 BLOCCATA · EVITALA":"EVITA A1";
-   ui.decisionSub.textContent=`Normale ${norm.current} min · A1 ${a1.current} min${diff?" · risparmi "+diff+" min":""}`;
+   ui.decisionSub.textContent=`Normale ${formatDuration(norm.current).long} · A1 ${formatDuration(a1.current).long}${diff?" · risparmi "+diff+" min":""}`;
    ui.a1Diff.textContent=`${diff} min più lenta`;ui.normalDiff.textContent=`${diff} min più veloce`;
  } else {
    ui.decisionIcon.textContent="≈";
    ui.decisionTitle.textContent="TEMPI SIMILI";
-   ui.decisionSub.textContent=`A1 ${a1.current} min · normale ${norm.current} min`;
+   ui.decisionSub.textContent=`A1 ${formatDuration(a1.current).long} · normale ${formatDuration(norm.current).long}`;
    ui.a1Diff.textContent="Tempi equivalenti";ui.normalDiff.textContent="Tempi equivalenti";
  }
 }
