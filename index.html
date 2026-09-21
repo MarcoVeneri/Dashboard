@@ -80,7 +80,7 @@ h1{font-size:40px;line-height:.96;letter-spacing:-.055em;margin:5px 0 8px;font-w
 .routeMetric{padding:10px 11px 9px;min-width:0}
 .routeMetric+.routeMetric{border-left:2px solid var(--line)}
 .routeMetricLabel{font-size:9px;font-weight:850;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
-.routeEta{font-size:30px;font-weight:900;color:var(--ink);line-height:1;letter-spacing:-.045em}
+.routeEta{font-size:52px;font-weight:900;color:var(--ink);line-height:.95;letter-spacing:-.055em}
 .routeEta span{display:none}
 .routeStatus{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;font-weight:850;border-radius:999px;padding:7px 9px}
 .ok{background:rgba(34,187,103,.12);color:#13884c}.warn{background:rgba(255,145,47,.14);color:#c56c18}.bad{background:rgba(241,80,71,.13);color:#c83b37}.neutral{background:rgba(110,124,150,.12);color:var(--muted)}
@@ -112,12 +112,12 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
  .weather{margin-bottom:7px}.weatherCard{padding:7px 10px}.weatherValue{font-size:21px}.weatherIcon{font-size:22px}
  .decision{padding:13px;border-radius:22px;margin-bottom:7px}.decisionIcon{width:43px;height:43px;border-radius:13px;font-size:22px}
  .decisionTitle{font-size:25px}.decisionSub{font-size:11px;margin-top:4px}
- .routes{gap:8px}.route{padding:12px;border-radius:20px;min-height:154px}.routeTime{font-size:43px;margin-top:0}.routeEta{font-size:25px}.routeMetric{padding:8px 9px}
+ .routes{gap:8px}.route{padding:12px;border-radius:20px;min-height:154px}.routeTime{font-size:43px;margin-top:0}.routeEta{font-size:43px}.routeMetric{padding:8px 9px}
  .routeStatus{margin-top:7px;padding:6px 8px;font-size:10px}.routeDetail{font-size:10px;margin-top:6px}.trafficBar{margin-top:7px}
  .waze{min-height:47px;margin-top:7px}.note{margin-top:5px}
 }
 @media(min-width:760px){
- .app{width:min(100%,720px);padding:24px}.routes{grid-template-columns:1fr;gap:14px}.route{min-height:190px;padding:20px}.routeTime{font-size:64px}.decisionTitle{font-size:38px}
+ .app{width:min(100%,720px);padding:24px}.routes{grid-template-columns:1fr;gap:14px}.route{min-height:190px;padding:20px}.routeTime{font-size:64px}.routeEta{font-size:64px}.decisionTitle{font-size:38px}
 }
 </style>
 </head>
@@ -183,13 +183,13 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 31.2 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 31.3 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 try{
- const URL_BUILD="31.2";
+ const URL_BUILD="31.3";
  const u=new URL(location.href);
  if(u.searchParams.get("v")!==URL_BUILD){
    u.searchParams.set("v",URL_BUILD);
@@ -198,7 +198,7 @@ try{
 }catch(e){}
 (()=>{
 "use strict";
-const BUILD="31.2";
+const BUILD="31.3";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
