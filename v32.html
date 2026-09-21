@@ -195,29 +195,29 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 35.0 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 36.0 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="35.0";
+const BUILD="36.0";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
-const NORMAL_VIA_ADDRS=[
- "Pontassieve, Firenze, Italia",
- "Sieci, Pontassieve, Firenze, Italia",
- "Compiobbi, Fiesole, Firenze, Italia",
- "Rovezzano, Firenze, Italia"
+const NORMAL_VIAS=[
+ {lat:43.77477,lon:11.43109}, // Pontassieve
+ {lat:43.79028,lon:11.39310}, // Sieci
+ {lat:43.78437,lon:11.36114}, // Compiobbi
+ {lat:43.76646,lon:11.31282}  // Rovezzano
 ];
 const INCISA={lat:43.66393,lon:11.45768};
 const FIRENZE_SUD={lat:43.74225,lon:11.28054};
 const WEATHER={reg:{lat:43.6817,lon:11.5299},fir:{lat:43.7696,lon:11.2558}};
 const KEY_STORE="morning.tomtomApiKey.v30";
-const POS_STORE="morning.positions.v35";
-const DATA_STORE="morning.lastTraffic.v35";
+const POS_STORE="morning.positions.v36";
+const DATA_STORE="morning.lastTraffic.v36";
 const REFRESH_MS=5*60*1000;
 
 const ui={
@@ -287,26 +287,20 @@ async function geocode(address){
 async function positions(){
  try{
   const p=JSON.parse(safeGet(POS_STORE)||"null");
-  if(p && p.home && p.home.lat && p.work && p.work.lat && Array.isArray(p.normalVias) && p.normalVias.length===NORMAL_VIA_ADDRS.length)return p;
+  if(p && p.home && p.home.lat && p.work && p.work.lat)return p;
  }catch(e){}
- const vals=await Promise.all([geocode(HOME_ADDR),geocode(WORK_ADDR),...NORMAL_VIA_ADDRS.map(geocode)]);
- const home=vals[0],work=vals[1],normalVias=vals.slice(2);
- const p={home,work,normalVias};safeSet(POS_STORE,JSON.stringify(p));return p;
+ const [home,work]=await Promise.all([geocode(HOME_ADDR),geocode(WORK_ADDR)]);
+ const p={home,work};safeSet(POS_STORE,JSON.stringify(p));return p;
 }
-async function route(points,{avoidMotorways=false,avoidTolls=false}={}){
+async function route(points,{avoidMotorways=false}={}){
  const key=getKey();
  const locs=points.map(p=>`${p.lat},${p.lon}`).join(":");
  const q=new URLSearchParams({
   key,traffic:"true",travelMode:"car",routeType:"fastest",
   computeTravelTimeFor:"all",routeRepresentation:"polyline",departAt:"now"
  });
- q.append("sectionType","traffic");
- q.append("sectionType","motorway");
- q.append("sectionType","tollRoad");
- const avoids=[];
- if(avoidMotorways)avoids.push("motorways");
- if(avoidTolls)avoids.push("tollRoads");
- if(avoids.length)q.set("avoid",avoids.join(","));
+ q.set("sectionType","motorway");
+ if(avoidMotorways)q.set("avoid","motorways");
  var r;
  try{r=await fetch(`https://api.tomtom.com/routing/1/calculateRoute/${locs}/json?${q}`,{cache:"no-store",mode:"cors"});}
  catch(e){throw new Error("Safari non riesce a collegarsi a TomTom (rete/CORS)");}
@@ -333,8 +327,7 @@ function parseRoute(route){
  const ratio=current/Math.max(1,noTraffic);
  const sections=Array.isArray(route.sections)?route.sections:[];
  const motorway=sections.some(x=>String(x.sectionType||"").toLowerCase()==="motorway");
- const toll=sections.some(x=>String(x.sectionType||"").toLowerCase()==="tollroad");
- return {current,delay:delayReal,noTraffic,ratio,motorway,toll};
+ return {current,delay:delayReal,noTraffic,ratio,motorway};
 }
 function a1Level(x){
  if(x.delay>=30||x.ratio>=1.65)return {text:"BLOCCATA",kind:"bad",icon:"⛔"};
@@ -407,7 +400,7 @@ async function refreshTraffic(){
  // strada normale ancorata a Pontassieve e senza autostrade.
  const [a1r,normr]=await Promise.all([
   route([p.home,INCISA,FIRENZE_SUD,p.work]),
-  route([p.home,...p.normalVias,p.work],{avoidMotorways:true,avoidTolls:true})
+  route([p.home,...NORMAL_VIAS,p.work],{avoidMotorways:true})
  ]);
  const data={a1:parseRoute(a1r),norm:parseRoute(normr),ts:Date.now()};
  safeSet(DATA_STORE,JSON.stringify(data));renderTraffic(data,"live");return true;
