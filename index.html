@@ -195,23 +195,24 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 33.0 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 34.0 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="33.0";
+const BUILD="34.0";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
+const NORMAL_VIA_ADDR="Pontassieve, Firenze, Italia";
 const INCISA={lat:43.66393,lon:11.45768};
 const FIRENZE_SUD={lat:43.74225,lon:11.28054};
 const WEATHER={reg:{lat:43.6817,lon:11.5299},fir:{lat:43.7696,lon:11.2558}};
 const KEY_STORE="morning.tomtomApiKey.v30";
-const POS_STORE="morning.positions.v31";
-const DATA_STORE="morning.lastTraffic.v31";
+const POS_STORE="morning.positions.v34";
+const DATA_STORE="morning.lastTraffic.v34";
 const REFRESH_MS=5*60*1000;
 
 const ui={
@@ -281,10 +282,10 @@ async function geocode(address){
 async function positions(){
  try{
   const p=JSON.parse(safeGet(POS_STORE)||"null");
-  if(p && p.home && p.home.lat && p.work && p.work.lat)return p;
+  if(p && p.home && p.home.lat && p.work && p.work.lat && p.normalVia && p.normalVia.lat)return p;
  }catch(e){}
- const [home,work]=await Promise.all([geocode(HOME_ADDR),geocode(WORK_ADDR)]);
- const p={home,work};safeSet(POS_STORE,JSON.stringify(p));return p;
+ const [home,work,normalVia]=await Promise.all([geocode(HOME_ADDR),geocode(WORK_ADDR),geocode(NORMAL_VIA_ADDR)]);
+ const p={home,work,normalVia};safeSet(POS_STORE,JSON.stringify(p));return p;
 }
 async function route(points,{avoidMotorways=false}={}){
  const key=getKey();
@@ -355,7 +356,7 @@ function renderTraffic(data,state="live"){
  setStatus(ui.a1Status,al.icon+" "+al.text,al.kind);
  setStatus(ui.normalStatus,nl.text,nl.kind);
  ui.a1Detail.textContent=a1.delay?`+${a1.delay} min per traffico · senza traffico ~${a1.noTraffic} min`:`Nessun ritardo significativo · ~${a1.noTraffic} min senza traffico`;
- ui.normalDetail.textContent=norm.delay?`+${norm.delay} min per traffico · senza traffico ~${norm.noTraffic} min`:`Percorso senza autostrada · ~${norm.noTraffic} min`;
+ ui.normalDetail.textContent=norm.delay?`Via Pontassieve · +${norm.delay} min per traffico · senza traffico ~${norm.noTraffic} min`:`Via Pontassieve · senza autostrada · ~${norm.noTraffic} min`;
  setBar(ui.a1Bar,Math.min(100,15+a1.delay*2.7),al.kind);
  setBar(ui.normalBar,Math.min(100,15+norm.delay*2.7),nl.kind);
  ui.a1Card.classList.toggle("recommended",c==="A1");
@@ -387,10 +388,12 @@ function loadLast(){
 async function refreshTraffic(){
  if(!getKey()){if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");return false}
  const p=await positions();
- // A1 is forced through both toll-plaza waypoints; the normal route explicitly avoids motorways.
+ // Confronto tra due itinerari reali:
+ // A1 forzata tramite Incisa + Firenze Sud;
+ // strada normale ancorata a Pontassieve e senza autostrade.
  const [a1s,norms]=await Promise.all([
   route([p.home,INCISA,FIRENZE_SUD,p.work]),
-  route([p.home,p.work],{avoidMotorways:true})
+  route([p.home,p.normalVia,p.work],{avoidMotorways:true})
  ]);
  const data={a1:parseSummary(a1s),norm:parseSummary(norms),ts:Date.now()};
  safeSet(DATA_STORE,JSON.stringify(data));renderTraffic(data,"live");return true;
