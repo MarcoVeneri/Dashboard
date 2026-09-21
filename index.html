@@ -76,6 +76,9 @@ h1{font-size:40px;line-height:.96;letter-spacing:-.055em;margin:5px 0 8px;font-w
 .routeName{font-size:11px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .routeTime{font-size:52px;font-weight:900;letter-spacing:-.065em;line-height:.95;margin-top:10px}
 .routeUnit{font-size:12px;font-weight:750;color:var(--muted);margin-left:3px}
+.routeMain{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.routeEta{font-size:15px;font-weight:820;color:var(--ink);margin:0 0 5px 2px;letter-spacing:-.015em}
+.routeEta span{color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-right:4px}
 .routeStatus{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;font-weight:850;border-radius:999px;padding:7px 9px}
 .ok{background:rgba(34,187,103,.12);color:#13884c}.warn{background:rgba(255,145,47,.14);color:#c56c18}.bad{background:rgba(241,80,71,.13);color:#c83b37}.neutral{background:rgba(110,124,150,.12);color:var(--muted)}
 .routeDetail{font-size:11px;color:var(--muted);line-height:1.35;margin-top:9px;min-height:30px}
@@ -106,7 +109,7 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
  .weather{margin-bottom:7px}.weatherCard{padding:7px 10px}.weatherValue{font-size:21px}.weatherIcon{font-size:22px}
  .decision{padding:13px;border-radius:22px;margin-bottom:7px}.decisionIcon{width:43px;height:43px;border-radius:13px;font-size:22px}
  .decisionTitle{font-size:25px}.decisionSub{font-size:11px;margin-top:4px}
- .routes{gap:8px}.route{padding:12px;border-radius:20px;min-height:154px}.routeTime{font-size:43px;margin-top:7px}
+ .routes{gap:8px}.route{padding:12px;border-radius:20px;min-height:154px}.routeTime{font-size:43px;margin-top:7px}.routeEta{font-size:14px;margin-bottom:4px}
  .routeStatus{margin-top:7px;padding:6px 8px;font-size:10px}.routeDetail{font-size:10px;margin-top:6px}.trafficBar{margin-top:7px}
  .waze{min-height:47px;margin-top:7px}.note{margin-top:5px}
 }
@@ -145,7 +148,7 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
   <section class="routes">
     <article id="a1Card" class="route">
       <div class="routeName">A1 · AUTOSTRADA</div>
-      <div><span id="a1Time" class="routeTime">--</span><span class="routeUnit">min</span></div>
+      <div class="routeMain"><div><span id="a1Time" class="routeTime">--</span><span class="routeUnit">min</span></div><div id="a1Eta" class="routeEta"><span>arrivo</span>--:--</div></div>
       <div id="a1Status" class="routeStatus neutral">IN ATTESA</div>
       <div id="a1Detail" class="routeDetail">Traffico A1 in caricamento…</div>
       <div class="trafficBar"><div id="a1Bar" class="trafficFill"></div></div>
@@ -154,7 +157,7 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
 
     <article id="normalCard" class="route">
       <div class="routeName">NO A1 · NORMALE</div>
-      <div><span id="normalTime" class="routeTime">--</span><span class="routeUnit">min</span></div>
+      <div class="routeMain"><div><span id="normalTime" class="routeTime">--</span><span class="routeUnit">min</span></div><div id="normalEta" class="routeEta"><span>arrivo</span>--:--</div></div>
       <div id="normalStatus" class="routeStatus neutral">ALTERNATIVA</div>
       <div id="normalDetail" class="routeDetail">Percorso senza autostrada</div>
       <div class="trafficBar"><div id="normalBar" class="trafficFill"></div></div>
@@ -177,14 +180,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 31.0 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 31.1 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="31.0";
+const BUILD="31.1";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -198,7 +201,7 @@ const REFRESH_MS=5*60*1000;
 
 const ui={
  greeting:$("#greeting"),meta:$("#meta"),refresh:$("#refreshBtn"),settings:$("#settingsBtn"),error:$("#errorBox"),
- a1Card:$("#a1Card"),normalCard:$("#normalCard"),a1Time:$("#a1Time"),normalTime:$("#normalTime"),
+ a1Card:$("#a1Card"),normalCard:$("#normalCard"),a1Time:$("#a1Time"),normalTime:$("#normalTime"),a1Eta:$("#a1Eta"),normalEta:$("#normalEta"),
  a1Status:$("#a1Status"),normalStatus:$("#normalStatus"),a1Detail:$("#a1Detail"),normalDetail:$("#normalDetail"),
  a1Bar:$("#a1Bar"),normalBar:$("#normalBar"),a1Diff:$("#a1Diff"),normalDiff:$("#normalDiff"),
  regTemp:$("#regTemp"),regIcon:$("#regIcon"),firTemp:$("#firTemp"),firIcon:$("#firIcon"),
@@ -223,6 +226,10 @@ window.addEventListener("unhandledrejection",function(e){
 
 function clock(d=new Date()){
  return new Intl.DateTimeFormat("it-IT",{hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d);
+}
+function etaClock(minutes,baseTs=Date.now()){
+ const base=Number(baseTs)||Date.now();
+ return clock(new Date(base+Math.max(0,Number(minutes)||0)*60000));
 }
 function greeting(){
  const h=Number(new Intl.DateTimeFormat("en",{hour:"2-digit",hourCycle:"h23",timeZone:"Europe/Rome"}).format(new Date()));
@@ -314,6 +321,9 @@ function renderTraffic(data,state="live"){
  const diff=Math.abs(a1.current-norm.current);
 
  ui.a1Time.textContent=a1.current; ui.normalTime.textContent=norm.current;
+ const baseTs=Number(data.ts)||Date.now();
+ ui.a1Eta.innerHTML="<span>arrivo</span>"+etaClock(a1.current,baseTs);
+ ui.normalEta.innerHTML="<span>arrivo</span>"+etaClock(norm.current,baseTs);
  setStatus(ui.a1Status,al.icon+" "+al.text,al.kind);
  setStatus(ui.normalStatus,nl.text,nl.kind);
  ui.a1Detail.textContent=a1.delay?`+${a1.delay} min per traffico · senza traffico ~${a1.noTraffic} min`:`Nessun ritardo significativo · ~${a1.noTraffic} min senza traffico`;
