@@ -1,12 +1,12 @@
 {
-  "name": "Mattino Traffico v33.0",
-  "short_name": "Mattino",
-  "start_url": "./v32.html?v=33.0",
+  "name": "Traffico v38.0",
+  "short_name": "Traffico",
+  "start_url": "./v32.html?v=38.0",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f5f8",
   "theme_color": "#f4f6f9",
-  "description": "Dashboard traffico Reggello-Firenze: confronto A1 e strada normale.",
+  "description": "Traffico Reggello-Firenze: confronto A1 e strada normale, andata e ritorno.",
   "icons": [
     {
       "src": "./icon-192.png",
