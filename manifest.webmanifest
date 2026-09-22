@@ -1,7 +1,7 @@
 {
-  "name": "Traffico v38.0",
+  "name": "Traffico v38.1",
   "short_name": "Traffico",
-  "start_url": "./v32.html?v=38.0",
+  "start_url": "./v38.html?v=38.1",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f5f8",
@@ -21,5 +21,5 @@
       "purpose": "any maskable"
     }
   ],
-  "id": "./v32.html"
+  "id": "./v38.html"
 }
