@@ -183,14 +183,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 37.5 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 37.6 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="37.5";
+const BUILD="37.6";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -397,37 +397,14 @@ async function refreshTraffic(){
  if(!getKey()){if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");return false}
  const p=await positions();
 
- // Ogni percorso ha un fallback indipendente: un 5xx di TomTom non deve bloccare tutta la dashboard.
- const a1Promise=(async()=>{
-   try{return await route([p.home,p.work]);}
-   catch(firstError){
-     try{return await route([p.home,INCISA,p.work]);}
-     catch(secondError){throw firstError;}
-   }
- })();
-
- const normalPromise=(async()=>{
-   try{return await route([p.home,...NORMAL_VIAS,p.work],{avoidMotorways:true});}
-   catch(firstError){
-     // Fallback più semplice, senza waypoint: riduce i timeout lato server TomTom.
-     try{return await route([p.home,p.work],{avoidMotorways:true});}
-     catch(secondError){throw firstError;}
-   }
- })();
-
- const [directr,normr]=await Promise.all([a1Promise,normalPromise]);
- let a1=parseRoute(directr);
-
- // Se il fastest diretto non contiene autostrada, prova a imporre l'ingresso di Incisa.
- if(!a1.motorway){
-   try{
-     const fallback=await route([p.home,INCISA,p.work]);
-     const fp=parseRoute(fallback);
-     if(fp.motorway)a1=fp;
-   }catch(e){}
- }
-
- const data={a1,norm:parseRoute(normr),ts:Date.now()};
+ // Percorsi forzati: A1 obbligatoria e strada normale obbligatoria.
+ const [a1r,normr]=await Promise.all([
+   route([p.home,INCISA,FIRENZE_SUD,p.work]),
+   route([p.home,...NORMAL_VIAS,p.work],{avoidMotorways:true})
+ ]);
+ const a1=parseRoute(a1r);
+ const norm=parseRoute(normr);
+ const data={a1,norm,ts:Date.now()};
  safeSet(DATA_STORE,JSON.stringify(data));
  renderTraffic(data,"live");
  ui.meta.textContent="Traffico live · aggiornato "+clock();
