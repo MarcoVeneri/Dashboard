@@ -476,6 +476,8 @@ ui.form.addEventListener("submit",async e=>{
 ui.dialog.addEventListener("click",function(e){if(e.target===ui.dialog)closeSettings()});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshAll()});
 
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}
+
 loadLast();
 refreshAll();
 timer=setInterval(refreshAll,REFRESH_MS);
