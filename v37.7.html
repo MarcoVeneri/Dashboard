@@ -186,14 +186,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 37.7 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 37.8 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="37.7";
+const BUILD="37.8";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -391,7 +391,7 @@ function renderTraffic(data,state="live"){
  } else if(c==="NOA1"){
    ui.decisionIcon.textContent=al.closed||al.text==="BLOCCATA"?"⛔":"↪️";
    ui.decisionTitle.textContent="STRADA NORMALE";
-   ui.decisionSub.textContent=al.closed?`${al.text} · normale ${formatDuration(norm.current).long}`:`Normale ${formatDuration(norm.current).long} · A1 ${formatDuration(a1.current).long}${diff?" · risparmi "+diff+" min":""}`;
+   ui.decisionSub.textContent=al.closed?`Normale ${formatDuration(norm.current).long}`:`Normale ${formatDuration(norm.current).long} · A1 ${formatDuration(a1.current).long}${diff?" · risparmi "+diff+" min":""}`;
    ui.a1Diff.textContent=al.closed?al.text:`${diff} min più lenta`;ui.normalDiff.textContent=al.closed?"Percorso consigliato":`${diff} min più veloce`;
  } else {
    ui.decisionIcon.textContent="≈";
