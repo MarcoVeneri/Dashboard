@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f8fa" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0d12" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Traffico">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="icon" href="./icon-192.png" type="image/png">
+<title>Traffico · v39</title>
+<style>
+:root{
+  --bg:#f6f8fb;--ink:#0a1020;--muted:#6f7b90;--line:rgba(80,96,126,.14);
+  --panel:#fff;--blue:#0f7cf7;--green:#087b3e;--green2:#13a95f;--greenSoft:#effaf3;
+  --orange:#b34c00;--orange2:#f27d22;--orangeSoft:#fff6ed;--red:#dc443d;
+  --shadow:0 18px 48px rgba(28,43,69,.10);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#0a0d12;--ink:#f6f8fc;--muted:#98a4b8;--line:rgba(255,255,255,.10);
+    --panel:#141922;--green:#38d27d;--green2:#2fc875;--greenSoft:#10241a;
+    --orange:#ff9a53;--orange2:#ff8b3d;--orangeSoft:#2a1b11;--red:#ff6b64;
+    --shadow:0 18px 48px rgba(0,0,0,.30);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100dvh;overflow-x:hidden}
+button,a,input{font:inherit}
+button,a{-webkit-tap-highlight-color:transparent}
+.app{width:min(100%,560px);margin:0 auto;min-height:100dvh;padding:max(18px,env(safe-area-inset-top)) 14px max(22px,env(safe-area-inset-bottom))}
+.hidden{display:none!important}
+
+.header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:3px 5px 16px}
+.headerTitle{font-size:48px;line-height:.98;letter-spacing:-.06em;font-weight:900;margin:0 0 7px}
+.headerMeta{font-size:13px;color:var(--muted);font-weight:600}
+.refresh{width:58px;height:58px;border:0;border-radius:20px;background:var(--panel);color:#286cca;box-shadow:0 10px 28px rgba(35,65,110,.10);font-size:28px;display:grid;place-items:center;cursor:pointer}
+.refresh:active{transform:scale(.97)}
+.refresh[disabled]{opacity:.55}
+
+.tripCard{
+  width:100%;border:1px solid var(--line);border-radius:30px;overflow:hidden;text-align:left;color:inherit;
+  background:var(--panel);padding:0;box-shadow:var(--shadow);cursor:pointer;position:relative
+}
+.tripCard+.tripCard{margin-top:16px}
+.tripCard.out{background:linear-gradient(145deg,var(--greenSoft),var(--panel) 66%)}
+.tripCard.back{background:linear-gradient(145deg,var(--orangeSoft),var(--panel) 66%)}
+.tripInner{position:relative;min-height:350px;padding:22px 22px 18px;overflow:hidden}
+.tripTop{position:relative;z-index:3;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.tripTitle{font-size:22px;font-weight:900;letter-spacing:-.025em}
+.out .tripTitle{color:var(--green)}
+.back .tripTitle{color:var(--orange)}
+.tripPath{font-size:14px;color:var(--muted);font-weight:650;margin-top:3px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:8px 10px;border-radius:999px;font-size:11px;font-weight:850;white-space:nowrap}
+.out .badge{background:rgba(32,174,92,.11);color:var(--green)}
+.back .badge{background:rgba(242,125,34,.12);color:var(--orange)}
+.tripMain{position:relative;z-index:3;width:67%;margin-top:35px}
+.choiceIcon{font-size:15px;font-weight:900;letter-spacing:.02em;margin-bottom:3px}
+.choiceName{font-size:33px;line-height:1;letter-spacing:-.045em;font-weight:930;text-transform:uppercase}
+.out .choiceName,.out .choiceIcon{color:var(--green)}
+.back .choiceName,.back .choiceIcon{color:var(--orange)}
+.bigTime{font-size:66px;line-height:.92;font-weight:930;letter-spacing:-.07em;margin-top:13px}
+.arrival{font-size:19px;color:var(--muted);font-weight:600;margin-top:8px}
+.faster{display:inline-flex;align-items:center;gap:8px;border-radius:18px;padding:11px 14px;font-size:16px;font-weight:850;margin-top:18px}
+.out .faster{background:rgba(39,192,105,.12);color:var(--green)}
+.back .faster{background:rgba(242,125,34,.13);color:var(--orange)}
+.altRow{position:relative;z-index:4;border-top:1px solid var(--line);margin-top:21px;padding-top:15px;font-size:14px;font-weight:700;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.altRow b{color:var(--ink)}
+.chev{font-size:24px;line-height:1}
+.visual{position:absolute;right:-4px;top:74px;width:48%;height:238px;z-index:1;opacity:.98;pointer-events:none}
+.visual svg{width:100%;height:100%;display:block}
+.visual:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--panel) 0%,transparent 34%);opacity:.65}
+.out .visual:after{background:linear-gradient(90deg,var(--greenSoft) 0%,transparent 38%)}
+.back .visual:after{background:linear-gradient(90deg,var(--orangeSoft) 0%,transparent 38%)}
+
+.weather{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:0 10px 30px rgba(28,43,69,.06);display:grid;grid-template-columns:1fr 1px 1fr;align-items:center;padding:14px 17px}
+.weatherDivider{height:34px;background:var(--line)}
+.weatherItem{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
+.weatherCity{font-size:12px;color:var(--muted);font-weight:700}
+.weatherTemp{font-size:25px;font-weight:900;letter-spacing:-.04em}
+.weatherIcon{font-size:23px}
+.smallNote{text-align:center;color:var(--muted);font-size:9px;line-height:1.4;margin-top:8px}
+
+.detailHead{display:flex;align-items:center;gap:12px;padding:3px 2px 17px}
+.backBtn{width:46px;height:46px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:22px;font-weight:800;display:grid;place-items:center}
+.detailTitle{font-size:31px;line-height:1;font-weight:900;letter-spacing:-.045em}
+.detailPath{font-size:12px;color:var(--muted);margin-top:4px;font-weight:650}
+.detailHero{border-radius:25px;padding:18px 18px 17px;margin-bottom:12px;border:1px solid var(--line)}
+.detailHero.out{background:linear-gradient(145deg,var(--greenSoft),var(--panel))}
+.detailHero.back{background:linear-gradient(145deg,var(--orangeSoft),var(--panel))}
+.detailKicker{font-size:10px;font-weight:850;letter-spacing:.08em;color:var(--muted)}
+.detailDecision{font-size:27px;font-weight:930;letter-spacing:-.04em;margin-top:4px}
+.detailHero.out .detailDecision{color:var(--green)}
+.detailHero.back .detailDecision{color:var(--orange)}
+.detailSummary{font-size:13px;color:var(--muted);margin-top:5px}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.option{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:16px 13px;box-shadow:0 10px 28px rgba(28,43,69,.06);min-width:0}
+.option.recommended{outline:2px solid rgba(27,177,91,.62);outline-offset:-2px}
+.optionName{font-size:12px;font-weight:900}
+.optionTime{font-size:46px;font-weight:930;line-height:.95;letter-spacing:-.065em;margin-top:13px}
+.optionArrival{font-size:12px;color:var(--muted);margin-top:7px;font-weight:700}
+.status{display:inline-flex;margin-top:12px;border-radius:999px;padding:7px 8px;font-size:9px;font-weight:850;white-space:nowrap}
+.status.ok{background:rgba(34,187,103,.12);color:#13884c}
+.status.warn{background:rgba(255,145,47,.14);color:#c56c18}
+.status.bad{background:rgba(241,80,71,.13);color:#c83b37}
+.delta{font-size:10px;color:var(--muted);font-weight:750;margin-top:9px;min-height:26px}
+.waze{display:flex;align-items:center;justify-content:center;text-decoration:none;background:#0b7af7;color:#fff;border-radius:17px;height:54px;font-size:15px;font-weight:850;margin-top:13px;box-shadow:0 12px 30px rgba(11,122,247,.20)}
+.detailNote{font-size:9px;color:var(--muted);text-align:center;line-height:1.4;margin:8px 8px 0}
+
+.error{display:none;margin:0 0 12px;border:1px solid rgba(241,80,71,.22);background:rgba(241,80,71,.09);color:var(--red);border-radius:15px;padding:10px 11px;font-size:10px;line-height:1.4}
+.error.show{display:block}
+.settingsPrompt{display:none;margin:0 0 12px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px}
+.settingsPrompt.show{display:block}
+.settingsPrompt p{font-size:11px;color:var(--muted);margin:0 0 8px}
+.settingsRow{display:flex;gap:7px}
+.settingsRow input{min-width:0;flex:1;height:44px;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--ink);padding:0 10px;font-size:16px}
+.settingsRow button{height:44px;border:0;border-radius:13px;background:var(--ink);color:var(--panel);padding:0 14px;font-weight:850}
+
+@media(max-width:390px){
+ .headerTitle{font-size:43px}.tripInner{min-height:335px;padding:19px 18px 16px}.tripMain{width:70%;margin-top:31px}
+ .choiceName{font-size:29px}.bigTime{font-size:60px}.visual{width:48%;height:220px;top:78px}
+ .badge{font-size:10px;padding:7px 8px}.tripTitle{font-size:20px}.tripPath{font-size:12px}
+}
+@media(max-width:340px){
+ .headerTitle{font-size:38px}.refresh{width:50px;height:50px}.tripInner{min-height:320px}
+ .choiceName{font-size:26px}.bigTime{font-size:54px}.arrival{font-size:17px}.faster{font-size:14px}
+ .visual{opacity:.82}.compare{gap:7px}.option{padding:14px 10px}.optionTime{font-size:41px}
+}
+@media(min-width:720px){
+ .app{width:min(100%,680px);padding-left:22px;padding-right:22px}.tripInner{min-height:385px}.tripMain{width:62%}.visual{width:47%;height:272px}
+ .choiceName{font-size:39px}.bigTime{font-size:78px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <div id="errorBox" class="error"></div>
+  <div id="settingsPrompt" class="settingsPrompt">
+    <p>Per leggere il traffico serve la chiave TomTom già usata dalla PWA. Se questo browser non la conserva più, reinseriscila una volta.</p>
+    <div class="settingsRow"><input id="tomtomKey" type="password" autocomplete="off" placeholder="Chiave TomTom"><button id="saveKey" type="button">Salva</button></div>
+  </div>
+
+  <section id="homeView">
+    <header class="header">
+      <div>
+        <h1 class="headerTitle">Traffico</h1>
+        <div id="meta" class="headerMeta">Aggiornamento all’apertura e ogni 5 minuti</div>
+      </div>
+      <button id="refreshBtn" class="refresh" type="button" aria-label="Aggiorna traffico">↻</button>
+    </header>
+
+    <button id="outCard" class="tripCard out" type="button" aria-label="Apri dettaglio andata">
+      <div class="tripInner">
+        <div class="tripTop">
+          <div><div class="tripTitle">→ ANDATA</div><div class="tripPath">Reggello → Lavoro (Rifredi)</div></div>
+          <div class="badge">✓ Percorso consigliato</div>
+        </div>
+        <div class="tripMain">
+          <div id="outChoiceIcon" class="choiceIcon">CONTROLLO</div>
+          <div id="outChoiceName" class="choiceName">TRAFFICO…</div>
+          <div id="outTime" class="bigTime">-- min</div>
+          <div id="outArrival" class="arrival">Arrivo --:--</div>
+          <div id="outFaster" class="faster">✓ confronto in corso</div>
+        </div>
+        <div id="outVisual" class="visual" aria-hidden="true"></div>
+        <div class="altRow"><span id="outAlt">Alternativa: --</span><span class="chev">›</span></div>
+      </div>
+    </button>
+
+    <button id="backCard" class="tripCard back" type="button" aria-label="Apri dettaglio ritorno">
+      <div class="tripInner">
+        <div class="tripTop">
+          <div><div class="tripTitle">← RITORNO</div><div class="tripPath">Lavoro (Rifredi) → Reggello</div></div>
+          <div class="badge">✓ Percorso consigliato</div>
+        </div>
+        <div class="tripMain">
+          <div id="backChoiceIcon" class="choiceIcon">CONTROLLO</div>
+          <div id="backChoiceName" class="choiceName">TRAFFICO…</div>
+          <div id="backTime" class="bigTime">-- min</div>
+          <div id="backArrival" class="arrival">Arrivo --:--</div>
+          <div id="backFaster" class="faster">✓ confronto in corso</div>
+        </div>
+        <div id="backVisual" class="visual" aria-hidden="true"></div>
+        <div class="altRow"><span id="backAlt">Alternativa: --</span><span class="chev">›</span></div>
+      </div>
+    </button>
+
+    <section class="weather" aria-label="Meteo">
+      <div class="weatherItem"><span class="weatherCity">Reggello</span><span id="regIcon" class="weatherIcon">—</span><span id="regTemp" class="weatherTemp">--°</span></div>
+      <div class="weatherDivider"></div>
+      <div class="weatherItem"><span class="weatherCity">Firenze</span><span id="firIcon" class="weatherIcon">—</span><span id="firTemp" class="weatherTemp">--°</span></div>
+    </section>
+    <div class="smallNote">Traffico live TomTom · aggiornamento automatico ogni 5 minuti</div>
+  </section>
+
+  <section id="detailView" class="hidden">
+    <header class="detailHead">
+      <button id="backBtn" class="backBtn" type="button" aria-label="Torna indietro">‹</button>
+      <div><div id="detailTitle" class="detailTitle">Andata</div><div id="detailPath" class="detailPath"></div></div>
+    </header>
+
+    <div id="detailHero" class="detailHero out">
+      <div class="detailKicker">SCELTA CONSIGLIATA</div>
+      <div id="detailDecision" class="detailDecision">—</div>
+      <div id="detailSummary" class="detailSummary">Confronto A1 e strada normale</div>
+    </div>
+
+    <div class="compare">
+      <article id="detailA1Card" class="option">
+        <div class="optionName">A1 AUTOSTRADA</div>
+        <div id="detailA1Time" class="optionTime">--</div>
+        <div id="detailA1Eta" class="optionArrival">Arrivo --:--</div>
+        <div id="detailA1Status" class="status ok">—</div>
+        <div id="detailA1Delta" class="delta"></div>
+      </article>
+      <article id="detailNormalCard" class="option">
+        <div class="optionName">STRADA NORMALE</div>
+        <div id="detailNormalTime" class="optionTime">--</div>
+        <div id="detailNormalEta" class="optionArrival">Arrivo --:--</div>
+        <div id="detailNormalStatus" class="status ok">—</div>
+        <div id="detailNormalDelta" class="delta"></div>
+      </article>
+    </div>
+
+    <a id="detailWaze" class="waze" href="#" target="_blank" rel="noopener">Apri in Waze</a>
+    <div class="detailNote">Waze apre la destinazione e può ricalcolare autonomamente il percorso rispetto al confronto mostrato qui.</div>
+  </section>
+</main>
+
+<script>
+(()=>{
+"use strict";
+const BUILD="39.0";
+const $=s=>document.querySelector(s);
+const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
+const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
+const NORMAL_VIAS=[
+ {lat:43.77477,lon:11.43109},
+ {lat:43.79028,lon:11.39310},
+ {lat:43.78437,lon:11.36114},
+ {lat:43.76646,lon:11.31282}
+];
+const INCISA={lat:43.66393,lon:11.45768};
+const FIRENZE_SUD={lat:43.74225,lon:11.28054};
+const WEATHER={reg:{lat:43.6817,lon:11.5299},fir:{lat:43.7696,lon:11.2558}};
+const KEY_STORE="morning.tomtomApiKey.v30";
+const POS_STORE="morning.positions.v36";
+const DATA_STORE="morning.lastTraffic.v39";
+const LEGACY_DATA_STORE="morning.lastTraffic.v38";
+const REFRESH_MS=5*60*1000;
+
+const ui={
+ error:$("#errorBox"),settings:$("#settingsPrompt"),key:$("#tomtomKey"),saveKey:$("#saveKey"),
+ meta:$("#meta"),refresh:$("#refreshBtn"),home:$("#homeView"),detail:$("#detailView"),
+ outCard:$("#outCard"),backCard:$("#backCard"),backBtn:$("#backBtn"),
+ regTemp:$("#regTemp"),regIcon:$("#regIcon"),firTemp:$("#firTemp"),firIcon:$("#firIcon"),
+ detailTitle:$("#detailTitle"),detailPath:$("#detailPath"),detailHero:$("#detailHero"),
+ detailDecision:$("#detailDecision"),detailSummary:$("#detailSummary"),
+ detailA1Card:$("#detailA1Card"),detailNormalCard:$("#detailNormalCard"),
+ detailA1Time:$("#detailA1Time"),detailNormalTime:$("#detailNormalTime"),
+ detailA1Eta:$("#detailA1Eta"),detailNormalEta:$("#detailNormalEta"),
+ detailA1Status:$("#detailA1Status"),detailNormalStatus:$("#detailNormalStatus"),
+ detailA1Delta:$("#detailA1Delta"),detailNormalDelta:$("#detailNormalDelta"),detailWaze:$("#detailWaze")
+};
+const homeUi={
+ out:{name:$("#outChoiceName"),icon:$("#outChoiceIcon"),time:$("#outTime"),arrival:$("#outArrival"),faster:$("#outFaster"),alt:$("#outAlt"),visual:$("#outVisual")},
+ back:{name:$("#backChoiceName"),icon:$("#backChoiceIcon"),time:$("#backTime"),arrival:$("#backArrival"),faster:$("#backFaster"),alt:$("#backAlt"),visual:$("#backVisual")}
+};
+
+let busy=false,lastData=null,currentDetail="out";
+
+function safeGet(k){try{return window.localStorage?localStorage.getItem(k):""}catch(e){return""}}
+function safeSet(k,v){try{if(window.localStorage)localStorage.setItem(k,v);return true}catch(e){return false}}
+function safeRemove(k){try{if(window.localStorage)localStorage.removeItem(k)}catch(e){}}
+function clock(d=new Date()){return new Intl.DateTimeFormat("it-IT",{hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d)}
+function etaClock(minutes){return clock(new Date(Date.now()+Math.max(0,Number(minutes)||0)*60000))}
+function showError(msg=""){ui.error.textContent=msg;ui.error.classList.toggle("show",!!msg)}
+function mins(sec){return Math.max(1,Math.round(Number(sec||0)/60))}
+
+function migrateKey(){
+ let key=safeGet(KEY_STORE)||safeGet("commute.tomtomApiKey.v1")||"";
+ if(!key){
+  for(const old of ["morningCfgV25","morningMilanoV23","morningMilanoV22","morningMilanoV21","morningMilanoV20"]){
+   try{const o=JSON.parse(safeGet(old)||"{}");if(o.tomtom){key=o.tomtom;break}}catch(e){}
+  }
+ }
+ if(key)safeSet(KEY_STORE,key);
+ return key;
+}
+function getKey(){return safeGet(KEY_STORE)||migrateKey()||""}
+
+async function geocode(address){
+ const key=getKey();
+ const u="https://api.tomtom.com/search/2/geocode/"+encodeURIComponent(address)+".json?key="+encodeURIComponent(key)+"&limit=1&countrySet=IT&language=it-IT";
+ const r=await fetch(u,{cache:"no-store",mode:"cors"});
+ if(!r.ok)throw new Error("TomTom geocoding HTTP "+r.status);
+ const j=await r.json();
+ if(!j.results||!j.results.length)throw new Error("Indirizzo non trovato");
+ return j.results[0].position;
+}
+async function positions(){
+ try{
+  const p=JSON.parse(safeGet(POS_STORE)||"null");
+  if(p&&p.home&&p.home.lat&&p.work&&p.work.lat)return p;
+ }catch(e){}
+ const pair=await Promise.all([geocode(HOME_ADDR),geocode(WORK_ADDR)]);
+ const p={home:pair[0],work:pair[1]};safeSet(POS_STORE,JSON.stringify(p));return p;
+}
+async function route(points,opt={}){
+ const key=getKey(),avoidMotorways=!!opt.avoidMotorways;
+ const locs=points.map(p=>p.lat+","+p.lon).join(":");
+ const q=new URLSearchParams({
+  key:key,traffic:"true",travelMode:"car",routeType:"fastest",
+  computeTravelTimeFor:"all",routeRepresentation:"polyline",departAt:"now",sectionType:"motorway"
+ });
+ if(avoidMotorways)q.set("avoid","motorways");
+ const r=await fetch("https://api.tomtom.com/routing/1/calculateRoute/"+locs+"/json?"+q.toString(),{cache:"no-store",mode:"cors"});
+ if(!r.ok)throw new Error("TomTom Routing "+r.status);
+ const j=await r.json(),rr=(j.routes&&j.routes[0])?j.routes[0]:null;
+ if(!rr||!rr.summary)throw new Error("TomTom non ha restituito un percorso");
+ return rr;
+}
+function parseRoute(rr){
+ const s=rr.summary,current=mins(s.travelTimeInSeconds);
+ const delay=Math.max(0,Math.round(Number(s.trafficDelayInSeconds||0)/60));
+ const noTraffic=s.noTrafficTravelTimeInSeconds?mins(s.noTrafficTravelTimeInSeconds):Math.max(1,current-delay);
+ const ratio=current/Math.max(1,noTraffic);
+ const motorway=(Array.isArray(rr.sections)?rr.sections:[]).some(x=>String(x.sectionType||"").toLowerCase()==="motorway");
+ return{current,delay,noTraffic,ratio,motorway};
+}
+function a1Level(x){
+ if(x.delay>=30||x.ratio>=1.65)return{text:"BLOCCATA",kind:"bad"};
+ if(x.delay>=15||x.ratio>=1.40)return{text:"CODA PESANTE",kind:"bad"};
+ if(x.delay>=7||x.ratio>=1.20)return{text:"RALLENTATA",kind:"warn"};
+ return{text:"SCORREVOLE",kind:"ok"};
+}
+function normalLevel(x){
+ if(x.delay>=20||x.ratio>=1.45)return{text:"RALLENTATA",kind:"bad"};
+ if(x.delay>=8||x.ratio>=1.22)return{text:"TRAFFICO",kind:"warn"};
+ return{text:"SCORREVOLE",kind:"ok"};
+}
+function choice(a1,norm){
+ if(a1.delay>=30||a1.ratio>=1.65)return"NOA1";
+ const d=a1.current-norm.current;
+ if(d<=-2)return"A1";
+ if(d>=2)return"NOA1";
+ return"TIE";
+}
+async function ensureA1(rr,fallbackPoints){
+ let parsed=parseRoute(rr);
+ if(!parsed.motorway){
+  try{
+   const f=await route(fallbackPoints),fp=parseRoute(f);
+   if(fp.motorway)parsed=fp;
+  }catch(e){}
+ }
+ return parsed;
+}
+
+function motorwaySvg(direction){
+ const sky=direction==="out"?"#d8efff":"#ffe3c7";
+ const hill=direction==="out"?"#8db597":"#a9a17d";
+ return '<svg viewBox="0 0 260 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Autostrada A1">'+
+  '<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop stop-color="'+sky+'"/><stop offset="1" stop-color="#f7fbff"/></linearGradient></defs>'+
+  '<rect width="260" height="240" rx="28" fill="url(#s)"/>'+
+  '<path d="M0 118 C45 88 82 94 116 118 C160 87 211 92 260 112 V240 H0Z" fill="'+hill+'" opacity=".78"/>'+
+  '<path d="M70 240 C92 188 116 146 142 119 C171 151 198 194 224 240Z" fill="#4c5664"/>'+
+  '<path d="M139 133 L143 133 L163 240 H149Z" fill="#fff" opacity=".9"/>'+
+  '<path d="M112 137 L116 136 L86 240 H74Z" fill="#fff" opacity=".85"/>'+
+  '<rect x="157" y="58" width="88" height="57" rx="7" fill="#157750" stroke="#fff" stroke-width="3"/>'+
+  '<text x="201" y="83" text-anchor="middle" fill="#fff" font-size="17" font-weight="800">A1</text>'+
+  '<text x="201" y="102" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Firenze ↑</text>'+
+  '<circle cx="122" cy="186" r="6" fill="#18212f"/><circle cx="176" cy="178" r="6" fill="#18212f"/>'+
+  '<rect x="113" y="177" width="19" height="9" rx="3" fill="#6d7d91"/><rect x="165" y="169" width="22" height="10" rx="3" fill="#596879"/>'+
+ '</svg>';
+}
+function normalSvg(direction){
+ const sky=direction==="out"?"#d9efff":"#ffd9b8";
+ const green=direction==="out"?"#7ca879":"#79925d";
+ return '<svg viewBox="0 0 260 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Strada normale">'+
+  '<defs><linearGradient id="n" x1="0" y1="0" x2="0" y2="1"><stop stop-color="'+sky+'"/><stop offset="1" stop-color="#fff8ef"/></linearGradient></defs>'+
+  '<rect width="260" height="240" rx="28" fill="url(#n)"/>'+
+  '<path d="M0 116 C48 96 70 111 101 122 C141 95 182 83 260 102 V240 H0Z" fill="'+green+'" opacity=".78"/>'+
+  '<path d="M116 240 C127 208 151 182 170 161 C184 146 189 134 193 118 C204 154 216 195 226 240Z" fill="#59636e"/>'+
+  '<path d="M170 240 C174 207 182 181 190 160" stroke="#fff" stroke-width="4" stroke-dasharray="13 12" fill="none"/>'+
+  '<g transform="translate(174 71)"><rect x="0" y="0" width="58" height="39" rx="5" fill="#ece6d7"/>'+
+  '<path d="M8 39 V11 H17 V39 M20 39 V5 H29 V39 M34 39 V15 H42 V39 M45 39 V9 H52 V39" stroke="#b68154" stroke-width="4"/>'+
+  '<path d="M0 8 L29 -7 L58 8" fill="#a85f3d"/></g>'+
+  '<circle cx="68" cy="130" r="28" fill="#5a7d45" opacity=".8"/><circle cx="34" cy="152" r="34" fill="#6f944f" opacity=".85"/>'+
+ '</svg>';
+}
+function setVisual(el,mode,direction){el.innerHTML=mode==="A1"?motorwaySvg(direction):normalSvg(direction)}
+
+function renderHomeTrip(which,pair){
+ const t=homeUi[which],c=choice(pair.a1,pair.norm),diff=Math.abs(pair.a1.current-pair.norm.current);
+ const chosen=c==="NOA1"?pair.norm:pair.a1;
+ const alt=c==="NOA1"?pair.a1:pair.norm;
+ const chosenName=c==="NOA1"?"STRADA NORMALE":c==="TIE"?"A1 / NORMALE":"PRENDI A1";
+ const chosenMode=c==="NOA1"?"NORMAL":"A1";
+ t.icon.textContent=c==="NOA1"?"STRADA CONSIGLIATA":c==="TIE"?"TEMPI SIMILI":"A1 CONSIGLIATA";
+ t.name.textContent=chosenName;
+ t.time.textContent=chosen.current+" min";
+ t.arrival.textContent="Arrivo "+etaClock(chosen.current);
+ t.faster.textContent=c==="TIE"?"≈ tempi quasi uguali":"✓ "+diff+" min più veloce";
+ t.alt.innerHTML='Alternativa: <b>'+(c==="NOA1"?"A1 ":"Normale ")+alt.current+' min</b>';
+ setVisual(t.visual,chosenMode,which);
+}
+function renderHome(data,state="live"){
+ lastData=data;
+ renderHomeTrip("out",data.out);
+ renderHomeTrip("back",data.back);
+ ui.meta.textContent=(state==="live"?"Aggiornato ":"Ultimo dato ")+clock(new Date(data.ts||Date.now()))+" · automatico ogni 5 min";
+ if(!ui.detail.classList.contains("hidden"))renderDetail(currentDetail);
+}
+function loadLast(){
+ for(const key of [DATA_STORE,LEGACY_DATA_STORE]){
+  try{
+   const d=JSON.parse(safeGet(key)||"null");
+   if(d&&d.out&&d.out.a1&&d.out.norm&&d.back&&d.back.a1&&d.back.norm){renderHome(d,"stale");return true}
+  }catch(e){}
+ }
+ return false;
+}
+
+function setStatus(el,level){
+ el.textContent=level.text;el.className="status "+level.kind;
+}
+function renderDetail(which){
+ if(!lastData)return;
+ currentDetail=which;
+ const pair=lastData[which],c=choice(pair.a1,pair.norm),diff=Math.abs(pair.a1.current-pair.norm.current);
+ const al=a1Level(pair.a1),nl=normalLevel(pair.norm);
+ ui.detailTitle.textContent=which==="out"?"Andata":"Ritorno";
+ ui.detailPath.textContent=which==="out"?"Reggello → Lavoro (Rifredi)":"Lavoro (Rifredi) → Reggello";
+ ui.detailHero.className="detailHero "+which;
+ ui.detailDecision.textContent=c==="A1"?"PRENDI A1":c==="NOA1"?"STRADA NORMALE":"TEMPI SIMILI";
+ ui.detailSummary.textContent=c==="TIE"?"A1 e strada normale hanno tempi quasi equivalenti":(c==="A1"?"A1":"Strada normale")+" è più veloce di "+diff+" min";
+ ui.detailA1Time.textContent=pair.a1.current+" min";
+ ui.detailNormalTime.textContent=pair.norm.current+" min";
+ ui.detailA1Eta.textContent="Arrivo "+etaClock(pair.a1.current);
+ ui.detailNormalEta.textContent="Arrivo "+etaClock(pair.norm.current);
+ setStatus(ui.detailA1Status,al);setStatus(ui.detailNormalStatus,nl);
+ ui.detailA1Card.classList.toggle("recommended",c==="A1");
+ ui.detailNormalCard.classList.toggle("recommended",c==="NOA1");
+ ui.detailA1Delta.textContent=c==="A1"?diff+" min più veloce":c==="NOA1"?diff+" min più lenta":"Tempi equivalenti";
+ ui.detailNormalDelta.textContent=c==="NOA1"?diff+" min più veloce":c==="A1"?diff+" min più lenta":"Tempi equivalenti";
+ ui.detailWaze.href=which==="out"
+  ?"https://waze.com/ul?q=Via%20Panciatichi%2017%2C%20Firenze%2C%20Italia&navigate=yes"
+  :"https://waze.com/ul?q=Via%20J.%20F.%20Kennedy%209%2C%20Reggello%2C%20Firenze%2C%20Italia&navigate=yes";
+}
+function openDetail(which){
+ if(!lastData)return;
+ renderDetail(which);
+ ui.home.classList.add("hidden");ui.detail.classList.remove("hidden");
+ window.scrollTo({top:0,behavior:"smooth"});
+ history.replaceState(null,"","#"+which);
+}
+function closeDetail(){
+ ui.detail.classList.add("hidden");ui.home.classList.remove("hidden");
+ history.replaceState(null,"",location.pathname+location.search);
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function refreshTraffic(){
+ if(!getKey()){
+  if(!loadLast())ui.settings.classList.add("show");
+  return false;
+ }
+ ui.settings.classList.remove("show");
+ const p=await positions(),rev=NORMAL_VIAS.slice().reverse();
+ const all=await Promise.all([
+  route([p.home,p.work]),
+  route([p.home,...NORMAL_VIAS,p.work],{avoidMotorways:true}),
+  route([p.work,p.home]),
+  route([p.work,...rev,p.home],{avoidMotorways:true})
+ ]);
+ const ensured=await Promise.all([
+  ensureA1(all[0],[p.home,INCISA,p.work]),
+  ensureA1(all[2],[p.work,FIRENZE_SUD,p.home])
+ ]);
+ const data={
+  out:{a1:ensured[0],norm:parseRoute(all[1])},
+  back:{a1:ensured[1],norm:parseRoute(all[3])},
+  ts:Date.now()
+ };
+ safeSet(DATA_STORE,JSON.stringify(data));renderHome(data,"live");return true;
+}
+
+function weatherIcon(code){
+ code=Number(code);if(code===0)return"☀️";if([1,2].includes(code))return"🌤️";if(code===3)return"☁️";
+ if([45,48].includes(code))return"🌫️";if([51,53,55,56,57].includes(code))return"🌦️";
+ if([61,63,65,66,67,80,81,82].includes(code))return"🌧️";if([71,73,75,77,85,86].includes(code))return"🌨️";
+ if([95,96,99].includes(code))return"⛈️";return"🌥️";
+}
+async function weather(point){
+ const q=new URLSearchParams({latitude:point.lat,longitude:point.lon,current:"temperature_2m,weather_code",timezone:"Europe/Rome"});
+ const r=await fetch("https://api.open-meteo.com/v1/forecast?"+q.toString(),{cache:"no-store",mode:"cors"});
+ if(!r.ok)throw new Error("Meteo HTTP "+r.status);
+ const j=await r.json();return{temp:Math.round(j.current.temperature_2m),icon:weatherIcon(j.current.weather_code)};
+}
+async function refreshWeather(){
+ const pair=await Promise.all([weather(WEATHER.reg),weather(WEATHER.fir)]);
+ ui.regTemp.textContent=pair[0].temp+"°";ui.regIcon.textContent=pair[0].icon;
+ ui.firTemp.textContent=pair[1].temp+"°";ui.firIcon.textContent=pair[1].icon;
+}
+async function refreshAll(){
+ if(busy)return;
+ busy=true;ui.refresh.disabled=true;ui.refresh.textContent="…";showError("");
+ const errs=[];
+ await Promise.all([
+  refreshTraffic().catch(e=>{errs.push(e.message||"Traffico non disponibile");loadLast()}),
+  refreshWeather().catch(()=>errs.push("Meteo non disponibile"))
+ ]);
+ if(errs.length)showError([...new Set(errs)].join(" · "));
+ ui.refresh.disabled=false;ui.refresh.textContent="↻";busy=false;
+}
+ui.refresh.addEventListener("click",refreshAll);
+ui.outCard.addEventListener("click",()=>openDetail("out"));
+ui.backCard.addEventListener("click",()=>openDetail("back"));
+ui.backBtn.addEventListener("click",closeDetail);
+ui.saveKey.addEventListener("click",()=>{
+ const k=ui.key.value.trim();
+ if(!k)return;
+ safeSet(KEY_STORE,k);safeRemove(POS_STORE);ui.settings.classList.remove("show");refreshAll();
+});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshAll()});
+
+if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+loadLast();
+if(location.hash==="#out"&&lastData)openDetail("out");
+if(location.hash==="#back"&&lastData)openDetail("back");
+refreshAll();
+setInterval(refreshAll,REFRESH_MS);
+if(!getKey())ui.settings.classList.add("show");
+})();
+</script>
+</body>
+</html>
