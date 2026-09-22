@@ -183,14 +183,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 37.3 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 37.4 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="37.3";
+const BUILD="37.4";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -291,16 +291,27 @@ async function route(points,{avoidMotorways=false}={}){
  });
  q.set("sectionType","motorway");
  if(avoidMotorways)q.set("avoid","motorways");
- var r;
- try{r=await fetch(`https://api.tomtom.com/routing/1/calculateRoute/${locs}/json?${q}`,{cache:"no-store",mode:"cors"});}
- catch(e){throw new Error("Safari non riesce a collegarsi a TomTom (rete/CORS)");}
- if(!r.ok){
-  let m="";try{const j=await r.json();m=(j && j.detailedError && j.detailedError.message)||(j && j.error && j.error.description)||""}catch(e){}
-  throw new Error(`TomTom Routing ${r.status}${m?": "+m:""}`);
+ const url=`https://api.tomtom.com/routing/1/calculateRoute/${locs}/json?${q}`;
+ let lastError=null;
+ for(let attempt=0;attempt<3;attempt++){
+  if(attempt)await new Promise(resolve=>setTimeout(resolve,attempt===1?700:1600));
+  let r;
+  try{r=await fetch(url,{cache:"no-store",mode:"cors"});}
+  catch(e){
+   lastError=new Error("Safari non riesce a collegarsi a TomTom (rete/CORS)");
+   continue;
+  }
+  if(r.ok){
+   const j=await r.json(),found=(j.routes && j.routes[0]) ? j.routes[0] : null;
+   if(!found || !found.summary)throw new Error("TomTom non ha restituito un percorso");
+   return found;
+  }
+  let m="";
+  try{const j=await r.json();m=(j && j.detailedError && j.detailedError.message)||(j && j.error && j.error.description)||""}catch(e){}
+  lastError=new Error(`TomTom Routing ${r.status}${m?": "+m:""}`);
+  if(r.status!==429 && r.status<500)throw lastError;
  }
- const j=await r.json(),route=(j.routes && j.routes[0]) ? j.routes[0] : null;
- if(!route || !route.summary)throw new Error("TomTom non ha restituito un percorso");
- return route;
+ throw lastError||new Error("TomTom temporaneamente non disponibile");
 }
 function mins(sec){return Math.max(1,Math.round(Number(sec||0)/60))}
 function formatDuration(total){
@@ -385,17 +396,29 @@ function loadLast(){
 async function refreshTraffic(){
  if(!getKey()){if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");return false}
  const p=await positions();
- // A1: percorso diretto più veloce casa → lavoro.
- // Non imponiamo più i caselli come waypoint: alteravano il tempo reale.
- // Normale: corridoio fisso Pontassieve → Sieci → Compiobbi → Rovezzano.
- const [directr,normr]=await Promise.all([
-  route([p.home,p.work]),
-  route([p.home,...NORMAL_VIAS,p.work],{avoidMotorways:true})
- ]);
- let a1r=directr;
- let a1=parseRoute(a1r);
- // Se il fastest diretto non contiene autostrada, prova a imporre solo l'ingresso
- // di Incisa, lasciando libero a TomTom il punto di uscita più veloce.
+
+ // Ogni percorso ha un fallback indipendente: un 5xx di TomTom non deve bloccare tutta la dashboard.
+ const a1Promise=(async()=>{
+   try{return await route([p.home,p.work]);}
+   catch(firstError){
+     try{return await route([p.home,INCISA,p.work]);}
+     catch(secondError){throw firstError;}
+   }
+ })();
+
+ const normalPromise=(async()=>{
+   try{return await route([p.home,...NORMAL_VIAS,p.work],{avoidMotorways:true});}
+   catch(firstError){
+     // Fallback più semplice, senza waypoint: riduce i timeout lato server TomTom.
+     try{return await route([p.home,p.work],{avoidMotorways:true});}
+     catch(secondError){throw firstError;}
+   }
+ })();
+
+ const [directr,normr]=await Promise.all([a1Promise,normalPromise]);
+ let a1=parseRoute(directr);
+
+ // Se il fastest diretto non contiene autostrada, prova a imporre l'ingresso di Incisa.
  if(!a1.motorway){
    try{
      const fallback=await route([p.home,INCISA,p.work]);
@@ -403,18 +426,32 @@ async function refreshTraffic(){
      if(fp.motorway)a1=fp;
    }catch(e){}
  }
+
  const data={a1,norm:parseRoute(normr),ts:Date.now()};
- safeSet(DATA_STORE,JSON.stringify(data));renderTraffic(data,"live");return true;
+ safeSet(DATA_STORE,JSON.stringify(data));
+ renderTraffic(data,"live");
+ ui.meta.textContent="Traffico live · aggiornato "+clock();
+ return true;
 }
 
 async function refreshAll(){
- if(busy)return;busy=true;ui.refresh.textContent="…";ui.refresh.disabled=true;showError("");
- const errs=[];
- const traffic=refreshTraffic().catch(e=>{errs.push(e.message||"Traffico non disponibile");loadLast();return false});
- await traffic;
- ui.meta.textContent="Traffico live · aggiornamento automatico";
- if(errs.length)showError([...new Set(errs)].join(" · "));
- busy=false;ui.refresh.textContent="↻";ui.refresh.disabled=false;
+ if(busy)return false;
+ busy=true;ui.refresh.textContent="…";ui.refresh.disabled=true;showError("");
+ let ok=false,errorMessage="";
+ try{
+   ok=await refreshTraffic();
+ }catch(e){
+   errorMessage=e&&e.message?e.message:"Traffico non disponibile";
+   const cached=loadLast();
+   ui.meta.textContent=cached?"Ultimo dato disponibile · nuovo tentativo automatico":"Traffico temporaneamente non disponibile";
+   if(!cached){
+     const serverError=/TomTom Routing (429|5\d\d)/.test(errorMessage);
+     showError(serverError?"TomTom ha restituito un errore temporaneo. Riprovo automaticamente.":errorMessage);
+   }
+ }finally{
+   busy=false;ui.refresh.textContent="↻";ui.refresh.disabled=false;
+ }
+ return ok;
 }
 function openSettings(){
  ui.key.value=getKey();ui.sheetMsg.textContent="";
@@ -436,6 +473,18 @@ ui.form.addEventListener("submit",async e=>{
 });
 ui.dialog.addEventListener("click",function(e){if(e.target===ui.dialog)closeSettings();});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshAll()});
+
+// Elimina il vecchio cache-first del solo progetto Dashboard: evita che iPhone riapra file obsoleti.
+try{
+ if("serviceWorker" in navigator){
+   navigator.serviceWorker.getRegistrations().then(regs=>regs.forEach(r=>{
+     try{if(String(r.scope||"").includes("/Dashboard/"))r.unregister();}catch(e){}
+   })).catch(()=>{});
+ }
+ if("caches" in window){
+   caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("commute-dashboard-")).map(k=>caches.delete(k)))).catch(()=>{});
+ }
+}catch(e){}
 
 greeting();setInterval(greeting,60000);loadLast();refreshAll();timer=setInterval(refreshAll,REFRESH_MS);
 if(!getKey())setTimeout(openSettings,350);
