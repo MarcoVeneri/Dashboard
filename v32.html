@@ -6,8 +6,8 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f7f8fa" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0a0d12" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0f14" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,241 +16,215 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-180.png">
 <link rel="icon" href="./icon-192.png" type="image/png">
-<title>Traffico · v40</title>
+<title>Traffico · Andata e ritorno</title>
 <style>
 :root{
-  --bg:#f6f8fb;--ink:#0a1020;--muted:#6f7b90;--line:rgba(80,96,126,.14);
-  --panel:#fff;--blue:#0f7cf7;--green:#087b3e;--green2:#13a95f;--greenSoft:#effaf3;
-  --orange:#b34c00;--orange2:#f27d22;--orangeSoft:#fff6ed;--red:#dc443d;
-  --shadow:0 18px 48px rgba(28,43,69,.10);
+  --bg:#f3f5f8;--panel:rgba(255,255,255,.84);--panelSolid:#fff;--ink:#0d1424;--muted:#707a8d;
+  --line:rgba(110,124,150,.20);--green:#22bb67;--green2:#079454;--red:#f15047;
+  --orange:#ff7a1a;--blue:#147cff;--shadow:0 12px 34px rgba(30,45,72,.09);
 }
 @media(prefers-color-scheme:dark){
-  :root{
-    --bg:#0a0d12;--ink:#f6f8fc;--muted:#98a4b8;--line:rgba(255,255,255,.10);
-    --panel:#141922;--green:#38d27d;--green2:#2fc875;--greenSoft:#10241a;
-    --orange:#ff9a53;--orange2:#ff8b3d;--orangeSoft:#2a1b11;--red:#ff6b64;
-    --shadow:0 18px 48px rgba(0,0,0,.30);
-  }
+  :root{--bg:#0c0f14;--panel:rgba(25,29,38,.84);--panelSolid:#171b23;--ink:#f4f7fb;--muted:#9aa5b8;
+    --line:rgba(255,255,255,.11);--shadow:0 15px 38px rgba(0,0,0,.28)}
 }
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+html,body{margin:0;min-height:100%;background:
+  radial-gradient(circle at 80% -5%,rgba(255,198,88,.13),transparent 28%),
+  radial-gradient(circle at 5% 15%,rgba(59,126,255,.08),transparent 30%),var(--bg);
+  color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
 body{min-height:100dvh;overflow-x:hidden}
-button,a,input{font:inherit}
-button,a{-webkit-tap-highlight-color:transparent}
-.app{width:min(100%,560px);margin:0 auto;min-height:100dvh;padding:max(18px,env(safe-area-inset-top)) 14px max(22px,env(safe-area-inset-bottom))}
-.hidden{display:none!important}
+button,input,a{font:inherit}button,a{-webkit-tap-highlight-color:transparent}
+.app{width:min(100%,560px);margin:0 auto;min-height:100dvh;padding:
+  max(14px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right))
+  max(18px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:4px 3px 10px}
+.eyebrow{font-size:12px;color:var(--muted);font-weight:700}
+h1{font-size:35px;line-height:1;letter-spacing:-.05em;margin:4px 0 7px;font-weight:850}
+.meta{font-size:11px;color:var(--muted)}
+.actions{display:flex;gap:7px}
+.circle{width:43px;height:43px;border-radius:50%;border:1px solid var(--line);background:var(--panel);
+ color:var(--ink);display:grid;place-items:center;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.3);cursor:pointer;font-size:19px}
+.circle:active{transform:scale(.97)}
 
-.header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:3px 5px 16px}
-.headerTitle{font-size:48px;line-height:.98;letter-spacing:-.06em;font-weight:900;margin:0 0 7px}
-.headerMeta{font-size:13px;color:var(--muted);font-weight:600}
-.refresh{width:58px;height:58px;border:0;border-radius:20px;background:var(--panel);color:#286cca;box-shadow:0 10px 28px rgba(35,65,110,.10);font-size:28px;display:grid;place-items:center;cursor:pointer}
-.refresh:active{transform:scale(.97)}
-.refresh[disabled]{opacity:.55}
+.weather{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.weatherCard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:9px 11px;
+ display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.weatherName{font-size:9px;font-weight:850;letter-spacing:.08em;color:var(--muted)}
+.weatherValue{font-size:23px;font-weight:850;margin-top:1px;letter-spacing:-.04em}
+.weatherIcon{font-size:24px}
 
-.tripCard{
-  width:100%;border:1px solid var(--line);border-radius:30px;overflow:hidden;text-align:left;color:inherit;
-  background:var(--panel);padding:0;box-shadow:var(--shadow);cursor:pointer;position:relative
-}
-.tripCard+.tripCard{margin-top:16px}
-.tripCard.out{background:linear-gradient(145deg,var(--greenSoft),var(--panel) 66%)}
-.tripCard.back{background:linear-gradient(145deg,var(--orangeSoft),var(--panel) 66%)}
-.tripInner{position:relative;min-height:350px;padding:22px 22px 18px;overflow:hidden}
-.tripTop{position:relative;z-index:3;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.tripTitle{font-size:22px;font-weight:900;letter-spacing:-.025em}
-.out .tripTitle{color:var(--green)}
-.back .tripTitle{color:var(--orange)}
-.tripPath{font-size:14px;color:var(--muted);font-weight:650;margin-top:3px}
-.badge{display:inline-flex;align-items:center;gap:5px;padding:8px 10px;border-radius:999px;font-size:11px;font-weight:850;white-space:nowrap}
-.out .badge{background:rgba(32,174,92,.11);color:var(--green)}
-.back .badge{background:rgba(242,125,34,.12);color:var(--orange)}
-.tripMain{position:relative;z-index:3;width:67%;margin-top:35px}
-.choiceIcon{font-size:15px;font-weight:900;letter-spacing:.02em;margin-bottom:3px}
-.choiceName{font-size:33px;line-height:1;letter-spacing:-.045em;font-weight:930;text-transform:uppercase}
-.out .choiceName,.out .choiceIcon{color:var(--green)}
-.back .choiceName,.back .choiceIcon{color:var(--orange)}
-.bigTime{font-size:66px;line-height:.92;font-weight:930;letter-spacing:-.07em;margin-top:13px}
-.arrival{font-size:19px;color:var(--muted);font-weight:600;margin-top:8px}
-.faster{display:inline-flex;align-items:center;gap:8px;border-radius:18px;padding:11px 14px;font-size:16px;font-weight:850;margin-top:18px}
-.out .faster{background:rgba(39,192,105,.12);color:var(--green)}
-.back .faster{background:rgba(242,125,34,.13);color:var(--orange)}
-.altRow{position:relative;z-index:4;border-top:1px solid var(--line);margin-top:21px;padding-top:15px;font-size:14px;font-weight:700;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
-.altRow b{color:var(--ink)}
-.chev{font-size:24px;line-height:1}
-.visual{position:absolute;right:-10px;top:82px;width:58%;height:252px;z-index:1;pointer-events:none;overflow:hidden;border-radius:0 26px 26px 0}
-.visual img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;opacity:.96;
-  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 18%,#000 48%,#000 100%);
-  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.18) 18%,#000 48%,#000 100%)}
-.visual:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--panel) 0%,rgba(255,255,255,.04) 44%,transparent 68%)}
-.out .visual:after{background:linear-gradient(90deg,var(--greenSoft) 0%,rgba(239,250,243,.18) 45%,transparent 70%)}
-.back .visual:after{background:linear-gradient(90deg,var(--orangeSoft) 0%,rgba(255,246,237,.16) 45%,transparent 70%)}
-.routeIcon{position:absolute;z-index:4;left:22px;top:148px;width:104px;height:104px;display:grid;place-items:center;font-weight:950}
-.routeIcon.a1{color:#fff;background:#087b3e;border:5px solid #fff;outline:5px solid #087b3e;border-radius:24px;font-size:38px;letter-spacing:-.04em}
-.routeIcon.road{width:96px;height:102px;background:linear-gradient(80deg,transparent 42%,#fff 43% 48%,transparent 49%),#596777;
-  clip-path:polygon(28% 0,72% 0,100% 100%,0 100%);border-radius:2px;color:transparent}
-.routeIcon.road:after{content:"";width:8px;height:74px;background:repeating-linear-gradient(to bottom,#fff 0 15px,transparent 15px 27px);display:block}
-.tripMain{position:relative;z-index:3;width:68%;margin-top:35px;padding-left:150px}
+.trip{border-radius:23px;overflow:hidden;border:1px solid var(--line);background:var(--panel);
+ box-shadow:var(--shadow);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.trip+.trip{margin-top:12px}
+.trip.outbound{border-color:rgba(20,124,255,.46)}
+.trip.return{border-color:rgba(255,122,26,.55)}
+.tripHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 13px}
+.outbound .tripHead{background:linear-gradient(135deg,rgba(20,124,255,.17),rgba(20,124,255,.06));border-bottom:2px solid rgba(20,124,255,.55)}
+.return .tripHead{background:linear-gradient(135deg,rgba(255,122,26,.20),rgba(255,122,26,.07));border-bottom:2px solid rgba(255,122,26,.62)}
+.tripLabel{font-size:19px;font-weight:900;letter-spacing:-.02em}
+.outbound .tripLabel{color:var(--blue)}.return .tripLabel{color:var(--orange)}
+.tripPath{font-size:11px;font-weight:720;color:var(--muted);margin-top:2px}
+.tripChoice{font-size:10px;font-weight:850;padding:6px 8px;border-radius:999px;background:rgba(110,124,150,.11);color:var(--muted);white-space:nowrap}
+.tripChoice.a1{background:rgba(34,187,103,.13);color:#12894d}
+.tripChoice.noa1{background:rgba(241,80,71,.12);color:#c63d38}
+.tripChoice.tie{background:rgba(110,124,150,.13);color:var(--muted)}
+.tripGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:9px}
 
-.weather{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:0 10px 30px rgba(28,43,69,.06);display:grid;grid-template-columns:1fr 1px 1fr;align-items:center;padding:14px 17px}
-.weatherDivider{height:34px;background:var(--line)}
-.weatherItem{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
-.weatherCity{font-size:12px;color:var(--muted);font-weight:700}
-.weatherTemp{font-size:25px;font-weight:900;letter-spacing:-.04em}
-.weatherIcon{font-size:23px}
-.smallNote{text-align:center;color:var(--muted);font-size:9px;line-height:1.4;margin-top:8px}
+.route{min-width:0;background:rgba(255,255,255,.42);border:1px solid var(--line);border-radius:18px;padding:12px 10px;position:relative}
+@media(prefers-color-scheme:dark){.route{background:rgba(11,15,21,.25)}}
+.route.recommended{outline:2px solid rgba(34,187,103,.70);outline-offset:-2px}
+.routeName{font-size:10px;font-weight:850;letter-spacing:.035em;color:var(--muted);min-height:24px}
+.routeTimeLine{display:flex;align-items:baseline;gap:3px;margin-top:5px}
+.routeTime{font-size:38px;font-weight:900;letter-spacing:-.06em;line-height:1}
+.routeUnit{font-size:10px;font-weight:800;color:var(--muted)}
+.routeEta{font-size:12px;font-weight:800;margin-top:7px}
+.routeEta span{font-size:9px;color:var(--muted);font-weight:850;letter-spacing:.06em;display:block;margin-bottom:1px}
+.routeStatus{display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-size:9px;font-weight:850;border-radius:999px;padding:6px 7px;max-width:100%}
+.ok{background:rgba(34,187,103,.12);color:#13884c}.warn{background:rgba(255,145,47,.14);color:#c56c18}
+.bad{background:rgba(241,80,71,.13);color:#c83b37}.neutral{background:rgba(110,124,150,.12);color:var(--muted)}
+.diff{font-size:9px;font-weight:800;margin-top:7px;min-height:12px;color:var(--muted)}
+.tripFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 9px 9px}
+.waze{display:flex;align-items:center;justify-content:center;text-decoration:none;min-height:42px;border-radius:14px;
+ background:#0a76f6;color:#fff;font-weight:820;font-size:12px;padding:0 13px;flex:1}
+.tripUpdated{font-size:9px;color:var(--muted);text-align:right;min-width:92px}
 
-.detailHead{display:flex;align-items:center;gap:12px;padding:3px 2px 17px}
-.backBtn{width:46px;height:46px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:22px;font-weight:800;display:grid;place-items:center}
-.detailTitle{font-size:31px;line-height:1;font-weight:900;letter-spacing:-.045em}
-.detailPath{font-size:12px;color:var(--muted);margin-top:4px;font-weight:650}
-.detailHero{border-radius:25px;padding:18px 18px 17px;margin-bottom:12px;border:1px solid var(--line)}
-.detailHero.out{background:linear-gradient(145deg,var(--greenSoft),var(--panel))}
-.detailHero.back{background:linear-gradient(145deg,var(--orangeSoft),var(--panel))}
-.detailKicker{font-size:10px;font-weight:850;letter-spacing:.08em;color:var(--muted)}
-.detailDecision{font-size:27px;font-weight:930;letter-spacing:-.04em;margin-top:4px}
-.detailHero.out .detailDecision{color:var(--green)}
-.detailHero.back .detailDecision{color:var(--orange)}
-.detailSummary{font-size:13px;color:var(--muted);margin-top:5px}
-
-.compare{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.option{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:16px 13px;box-shadow:0 10px 28px rgba(28,43,69,.06);min-width:0}
-.option.recommended{outline:2px solid rgba(27,177,91,.62);outline-offset:-2px}
-.optionName{font-size:12px;font-weight:900}
-.optionTime{font-size:46px;font-weight:930;line-height:.95;letter-spacing:-.065em;margin-top:13px}
-.optionArrival{font-size:12px;color:var(--muted);margin-top:7px;font-weight:700}
-.status{display:inline-flex;margin-top:12px;border-radius:999px;padding:7px 8px;font-size:9px;font-weight:850;white-space:nowrap}
-.status.ok{background:rgba(34,187,103,.12);color:#13884c}
-.status.warn{background:rgba(255,145,47,.14);color:#c56c18}
-.status.bad{background:rgba(241,80,71,.13);color:#c83b37}
-.delta{font-size:10px;color:var(--muted);font-weight:750;margin-top:9px;min-height:26px}
-.waze{display:flex;align-items:center;justify-content:center;text-decoration:none;background:#0b7af7;color:#fff;border-radius:17px;height:54px;font-size:15px;font-weight:850;margin-top:13px;box-shadow:0 12px 30px rgba(11,122,247,.20)}
-.detailNote{font-size:9px;color:var(--muted);text-align:center;line-height:1.4;margin:8px 8px 0}
-
-.error{display:none;margin:0 0 12px;border:1px solid rgba(241,80,71,.22);background:rgba(241,80,71,.09);color:var(--red);border-radius:15px;padding:10px 11px;font-size:10px;line-height:1.4}
+.error{display:none;margin:0 0 10px;border:1px solid rgba(241,80,71,.24);background:rgba(241,80,71,.10);
+ color:#bd3935;border-radius:14px;padding:9px 11px;font-size:10px;line-height:1.35}
 .error.show{display:block}
-.settingsPrompt{display:none;margin:0 0 12px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px}
-.settingsPrompt.show{display:block}
-.settingsPrompt p{font-size:11px;color:var(--muted);margin:0 0 8px}
-.settingsRow{display:flex;gap:7px}
-.settingsRow input{min-width:0;flex:1;height:44px;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--ink);padding:0 10px;font-size:16px}
-.settingsRow button{height:44px;border:0;border-radius:13px;background:var(--ink);color:var(--panel);padding:0 14px;font-weight:850}
+.note{font-size:9px;color:var(--muted);text-align:center;margin:8px 10px 0;line-height:1.35}
 
-@media(max-width:390px){
- .headerTitle{font-size:43px}.tripInner{min-height:335px;padding:19px 18px 16px}.tripMain{width:70%;margin-top:31px}
- .choiceName{font-size:29px}.bigTime{font-size:60px}.visual{width:48%;height:220px;top:78px}
- .badge{font-size:10px;padding:7px 8px}.tripTitle{font-size:20px}.tripPath{font-size:12px}
+.modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(7,11,19,.38);
+ backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:flex-end;justify-content:center;padding:9px}
+.modal.open{display:flex}
+.sheet{width:min(100%,470px);background:var(--panelSolid);border:1px solid var(--line);border-radius:27px;padding:17px;
+ box-shadow:0 35px 90px rgba(0,0,0,.28);padding-bottom:max(17px,env(safe-area-inset-bottom))}
+.sheetHead{display:flex;align-items:center;justify-content:space-between}.sheetTitle{font-size:23px;font-weight:850}
+.sheet p{font-size:11px;color:var(--muted);line-height:1.45}
+label{display:block;font-size:10px;font-weight:820;margin:13px 0 6px}
+input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 11px;font-size:16px}
+.save{width:100%;height:48px;border:0;border-radius:14px;background:var(--ink);color:var(--panelSolid);font-weight:820;margin-top:14px}
+.sheetMsg{font-size:10px;color:var(--muted);margin-top:8px}.version{text-align:center;color:var(--muted);font-size:9px;margin-top:12px}
+
+@media(max-width:360px){
+ h1{font-size:31px}.tripGrid{gap:6px;padding:7px}.route{padding:10px 8px}.routeTime{font-size:34px}
+ .tripLabel{font-size:17px}.tripPath{font-size:10px}.tripChoice{font-size:9px}
 }
-@media(max-width:340px){
- .headerTitle{font-size:38px}.refresh{width:50px;height:50px}.tripInner{min-height:320px}
- .choiceName{font-size:26px}.bigTime{font-size:54px}.arrival{font-size:17px}.faster{font-size:14px}
- .visual{opacity:.82}.compare{gap:7px}.option{padding:14px 10px}.optionTime{font-size:41px}
-}
-@media(min-width:720px){
- .app{width:min(100%,680px);padding-left:22px;padding-right:22px}.tripInner{min-height:385px}.tripMain{width:62%}.visual{width:47%;height:272px}
- .choiceName{font-size:39px}.bigTime{font-size:78px}
+@media(min-width:760px){
+ .app{width:min(100%,720px);padding:24px}.tripGrid{gap:12px;padding:12px}.route{padding:16px}.routeTime{font-size:48px}
 }
 </style>
 </head>
 <body>
 <main class="app">
+  <header class="header">
+    <div>
+      <div class="eyebrow">Reggello ↔ Firenze · Via Panciatichi</div>
+      <h1>Traffico</h1>
+      <div id="meta" class="meta">Aggiornamento all’apertura e ogni 5 minuti</div>
+    </div>
+    <div class="actions">
+      <button id="refreshBtn" class="circle" type="button" aria-label="Aggiorna">↻</button>
+      <button id="settingsBtn" class="circle" type="button" aria-label="Impostazioni">⚙︎</button>
+    </div>
+  </header>
+
   <div id="errorBox" class="error"></div>
-  <div id="settingsPrompt" class="settingsPrompt">
-    <p>Per leggere il traffico serve la chiave TomTom già usata dalla PWA. Se questo browser non la conserva più, reinseriscila una volta.</p>
-    <div class="settingsRow"><input id="tomtomKey" type="password" autocomplete="off" placeholder="Chiave TomTom"><button id="saveKey" type="button">Salva</button></div>
-  </div>
 
-  <section id="homeView">
-    <header class="header">
+  <section class="trip outbound">
+    <div class="tripHead">
       <div>
-        <h1 class="headerTitle">Traffico</h1>
-        <div id="meta" class="headerMeta">Aggiornamento all’apertura e ogni 5 minuti</div>
+        <div class="tripLabel">→ ANDATA</div>
+        <div class="tripPath">Reggello → Lavoro (Rifredi)</div>
       </div>
-      <button id="refreshBtn" class="refresh" type="button" aria-label="Aggiorna traffico">↻</button>
-    </header>
-
-    <button id="outCard" class="tripCard out" type="button" aria-label="Apri dettaglio andata">
-      <div class="tripInner">
-        <div class="tripTop">
-          <div><div class="tripTitle">→ ANDATA</div><div class="tripPath">Reggello → Lavoro (Rifredi)</div></div>
-          <div class="badge">✓ Percorso consigliato</div>
-        </div>
-        <div id="outRouteIcon" class="routeIcon a1">A1</div>
-        <div class="tripMain">
-          <div id="outChoiceIcon" class="choiceIcon">CONTROLLO</div>
-          <div id="outChoiceName" class="choiceName">TRAFFICO…</div>
-          <div id="outTime" class="bigTime">-- min</div>
-          <div id="outArrival" class="arrival">Arrivo --:--</div>
-          <div id="outFaster" class="faster">✓ confronto in corso</div>
-        </div>
-        <div id="outVisual" class="visual" aria-hidden="true"><img id="outVisualImg" src="./out-card.jpg" alt=""></div>
-        <div class="altRow"><span id="outAlt">Alternativa: --</span><span class="chev">›</span></div>
-      </div>
-    </button>
-
-    <button id="backCard" class="tripCard back" type="button" aria-label="Apri dettaglio ritorno">
-      <div class="tripInner">
-        <div class="tripTop">
-          <div><div class="tripTitle">← RITORNO</div><div class="tripPath">Lavoro (Rifredi) → Reggello</div></div>
-          <div class="badge">✓ Percorso consigliato</div>
-        </div>
-        <div id="backRouteIcon" class="routeIcon road"></div>
-        <div class="tripMain">
-          <div id="backChoiceIcon" class="choiceIcon">CONTROLLO</div>
-          <div id="backChoiceName" class="choiceName">TRAFFICO…</div>
-          <div id="backTime" class="bigTime">-- min</div>
-          <div id="backArrival" class="arrival">Arrivo --:--</div>
-          <div id="backFaster" class="faster">✓ confronto in corso</div>
-        </div>
-        <div id="backVisual" class="visual" aria-hidden="true"><img id="backVisualImg" src="./back-card.jpg" alt=""></div>
-        <div class="altRow"><span id="backAlt">Alternativa: --</span><span class="chev">›</span></div>
-      </div>
-    </button>
-
-    <section class="weather" aria-label="Meteo">
-      <div class="weatherItem"><span class="weatherCity">Reggello</span><span id="regIcon" class="weatherIcon">—</span><span id="regTemp" class="weatherTemp">--°</span></div>
-      <div class="weatherDivider"></div>
-      <div class="weatherItem"><span class="weatherCity">Firenze</span><span id="firIcon" class="weatherIcon">—</span><span id="firTemp" class="weatherTemp">--°</span></div>
-    </section>
-    <div class="smallNote">Traffico live TomTom · aggiornamento automatico ogni 5 minuti</div>
-  </section>
-
-  <section id="detailView" class="hidden">
-    <header class="detailHead">
-      <button id="backBtn" class="backBtn" type="button" aria-label="Torna indietro">‹</button>
-      <div><div id="detailTitle" class="detailTitle">Andata</div><div id="detailPath" class="detailPath"></div></div>
-    </header>
-
-    <div id="detailHero" class="detailHero out">
-      <div class="detailKicker">SCELTA CONSIGLIATA</div>
-      <div id="detailDecision" class="detailDecision">—</div>
-      <div id="detailSummary" class="detailSummary">Confronto A1 e strada normale</div>
+      <div id="outChoice" class="tripChoice">CONTROLLO…</div>
     </div>
-
-    <div class="compare">
-      <article id="detailA1Card" class="option">
-        <div class="optionName">A1 AUTOSTRADA</div>
-        <div id="detailA1Time" class="optionTime">--</div>
-        <div id="detailA1Eta" class="optionArrival">Arrivo --:--</div>
-        <div id="detailA1Status" class="status ok">—</div>
-        <div id="detailA1Delta" class="delta"></div>
+    <div class="tripGrid">
+      <article id="outA1Card" class="route">
+        <div class="routeName">A1 AUTOSTRADA</div>
+        <div class="routeTimeLine"><span id="outA1Time" class="routeTime">--</span><span class="routeUnit">min</span></div>
+        <div id="outA1Eta" class="routeEta"><span>ARRIVO STIMATO</span>--:--</div>
+        <div id="outA1Status" class="routeStatus neutral">IN ATTESA</div>
+        <div id="outA1Diff" class="diff"></div>
       </article>
-      <article id="detailNormalCard" class="option">
-        <div class="optionName">STRADA NORMALE</div>
-        <div id="detailNormalTime" class="optionTime">--</div>
-        <div id="detailNormalEta" class="optionArrival">Arrivo --:--</div>
-        <div id="detailNormalStatus" class="status ok">—</div>
-        <div id="detailNormalDelta" class="delta"></div>
+      <article id="outNormalCard" class="route">
+        <div class="routeName">STRADA NORMALE</div>
+        <div class="routeTimeLine"><span id="outNormalTime" class="routeTime">--</span><span class="routeUnit">min</span></div>
+        <div id="outNormalEta" class="routeEta"><span>ARRIVO STIMATO</span>--:--</div>
+        <div id="outNormalStatus" class="routeStatus neutral">IN ATTESA</div>
+        <div id="outNormalDiff" class="diff"></div>
       </article>
     </div>
-
-    <a id="detailWaze" class="waze" href="#" target="_blank" rel="noopener">Apri in Waze</a>
-    <div class="detailNote">Waze apre la destinazione e può ricalcolare autonomamente il percorso rispetto al confronto mostrato qui.</div>
+    <div class="tripFoot">
+      <a class="waze" href="https://waze.com/ul?q=Via%20Panciatichi%2017%2C%20Firenze%2C%20Italia&navigate=yes" target="_blank" rel="noopener">Apri Waze → lavoro</a>
+      <div id="outUpdated" class="tripUpdated">--:--</div>
+    </div>
   </section>
+
+  <section class="trip return">
+    <div class="tripHead">
+      <div>
+        <div class="tripLabel">← RITORNO</div>
+        <div class="tripPath">Lavoro (Rifredi) → Reggello</div>
+      </div>
+      <div id="backChoice" class="tripChoice">CONTROLLO…</div>
+    </div>
+    <div class="tripGrid">
+      <article id="backA1Card" class="route">
+        <div class="routeName">A1 AUTOSTRADA</div>
+        <div class="routeTimeLine"><span id="backA1Time" class="routeTime">--</span><span class="routeUnit">min</span></div>
+        <div id="backA1Eta" class="routeEta"><span>ARRIVO STIMATO</span>--:--</div>
+        <div id="backA1Status" class="routeStatus neutral">IN ATTESA</div>
+        <div id="backA1Diff" class="diff"></div>
+      </article>
+      <article id="backNormalCard" class="route">
+        <div class="routeName">STRADA NORMALE</div>
+        <div class="routeTimeLine"><span id="backNormalTime" class="routeTime">--</span><span class="routeUnit">min</span></div>
+        <div id="backNormalEta" class="routeEta"><span>ARRIVO STIMATO</span>--:--</div>
+        <div id="backNormalStatus" class="routeStatus neutral">IN ATTESA</div>
+        <div id="backNormalDiff" class="diff"></div>
+      </article>
+    </div>
+    <div class="tripFoot">
+      <a class="waze" href="https://waze.com/ul?q=Via%20J.%20F.%20Kennedy%209%2C%20Reggello%2C%20Firenze%2C%20Italia&navigate=yes" target="_blank" rel="noopener">Apri Waze → casa</a>
+      <div id="backUpdated" class="tripUpdated">--:--</div>
+    </div>
+  </section>
+
+  <section class="weather">
+    <div class="weatherCard">
+      <div><div class="weatherName">REGGELLO</div><div id="regTemp" class="weatherValue">--°</div></div>
+      <div id="regIcon" class="weatherIcon">—</div>
+    </div>
+    <div class="weatherCard">
+      <div><div class="weatherName">FIRENZE</div><div id="firTemp" class="weatherValue">--°</div></div>
+      <div id="firIcon" class="weatherIcon">—</div>
+    </div>
+  </section>
+
+  <div class="note">I tempi A1 e strada normale sono calcolati separatamente in entrambe le direzioni. I dati vengono richiesti appena apri la PWA, quando torni sull’app e poi ogni 5 minuti.</div>
 </main>
+
+<div id="settingsDialog" class="modal" aria-hidden="true">
+  <form id="settingsForm" class="sheet">
+    <div class="sheetHead">
+      <div class="sheetTitle">Impostazioni</div>
+      <button id="closeBtn" class="circle" type="button" style="width:38px;height:38px">×</button>
+    </div>
+    <p>La chiave TomTom viene salvata solo nel browser di questo dispositivo. Non viene inserita nei file GitHub.</p>
+    <label for="tomtomKey">Chiave API TomTom</label>
+    <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
+    <button class="save" type="submit">Salva e verifica</button>
+    <div id="sheetMsg" class="sheetMsg"></div>
+    <div class="version">Traffico · versione 38.1 · andata + ritorno</div>
+  </form>
+</div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="40.0";
+const BUILD="38.1";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -265,37 +239,48 @@ const FIRENZE_SUD={lat:43.74225,lon:11.28054};
 const WEATHER={reg:{lat:43.6817,lon:11.5299},fir:{lat:43.7696,lon:11.2558}};
 const KEY_STORE="morning.tomtomApiKey.v30";
 const POS_STORE="morning.positions.v36";
-const DATA_STORE="morning.lastTraffic.v39";
-const LEGACY_DATA_STORE="morning.lastTraffic.v38";
+const DATA_STORE="morning.lastTraffic.v38";
 const REFRESH_MS=5*60*1000;
 
 const ui={
- error:$("#errorBox"),settings:$("#settingsPrompt"),key:$("#tomtomKey"),saveKey:$("#saveKey"),
- meta:$("#meta"),refresh:$("#refreshBtn"),home:$("#homeView"),detail:$("#detailView"),
- outCard:$("#outCard"),backCard:$("#backCard"),backBtn:$("#backBtn"),
+ meta:$("#meta"),refresh:$("#refreshBtn"),settings:$("#settingsBtn"),error:$("#errorBox"),
  regTemp:$("#regTemp"),regIcon:$("#regIcon"),firTemp:$("#firTemp"),firIcon:$("#firIcon"),
- detailTitle:$("#detailTitle"),detailPath:$("#detailPath"),detailHero:$("#detailHero"),
- detailDecision:$("#detailDecision"),detailSummary:$("#detailSummary"),
- detailA1Card:$("#detailA1Card"),detailNormalCard:$("#detailNormalCard"),
- detailA1Time:$("#detailA1Time"),detailNormalTime:$("#detailNormalTime"),
- detailA1Eta:$("#detailA1Eta"),detailNormalEta:$("#detailNormalEta"),
- detailA1Status:$("#detailA1Status"),detailNormalStatus:$("#detailNormalStatus"),
- detailA1Delta:$("#detailA1Delta"),detailNormalDelta:$("#detailNormalDelta"),detailWaze:$("#detailWaze")
+ dialog:$("#settingsDialog"),form:$("#settingsForm"),close:$("#closeBtn"),key:$("#tomtomKey"),sheetMsg:$("#sheetMsg")
 };
-const homeUi={
- out:{name:$("#outChoiceName"),icon:$("#outChoiceIcon"),time:$("#outTime"),arrival:$("#outArrival"),faster:$("#outFaster"),alt:$("#outAlt"),visual:$("#outVisual")},
- back:{name:$("#backChoiceName"),icon:$("#backChoiceIcon"),time:$("#backTime"),arrival:$("#backArrival"),faster:$("#backFaster"),alt:$("#backAlt"),visual:$("#backVisual")}
+const trips={
+ out:{
+  choice:$("#outChoice"),a1Card:$("#outA1Card"),normalCard:$("#outNormalCard"),
+  a1Time:$("#outA1Time"),normalTime:$("#outNormalTime"),a1Eta:$("#outA1Eta"),normalEta:$("#outNormalEta"),
+  a1Status:$("#outA1Status"),normalStatus:$("#outNormalStatus"),a1Diff:$("#outA1Diff"),normalDiff:$("#outNormalDiff"),
+  updated:$("#outUpdated")
+ },
+ back:{
+  choice:$("#backChoice"),a1Card:$("#backA1Card"),normalCard:$("#backNormalCard"),
+  a1Time:$("#backA1Time"),normalTime:$("#backNormalTime"),a1Eta:$("#backA1Eta"),normalEta:$("#backNormalEta"),
+  a1Status:$("#backA1Status"),normalStatus:$("#backNormalStatus"),a1Diff:$("#backA1Diff"),normalDiff:$("#backNormalDiff"),
+  updated:$("#backUpdated")
+ }
 };
 
-let busy=false,lastData=null,currentDetail="out";
+let busy=false,timer=null;
 
 function safeGet(k){try{return window.localStorage?localStorage.getItem(k):""}catch(e){return""}}
 function safeSet(k,v){try{if(window.localStorage)localStorage.setItem(k,v);return true}catch(e){return false}}
 function safeRemove(k){try{if(window.localStorage)localStorage.removeItem(k)}catch(e){}}
 function clock(d=new Date()){return new Intl.DateTimeFormat("it-IT",{hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d)}
-function etaClock(minutes){return clock(new Date(Date.now()+Math.max(0,Number(minutes)||0)*60000))}
+function etaClock(minutes,baseTs=Date.now()){
+ const base=Number(baseTs)||Date.now();
+ return clock(new Date(base+Math.max(0,Number(minutes)||0)*60000));
+}
 function showError(msg=""){ui.error.textContent=msg;ui.error.classList.toggle("show",!!msg)}
-function mins(sec){return Math.max(1,Math.round(Number(sec||0)/60))}
+function setStatus(el,text,kind){el.textContent=text;el.className="routeStatus "+kind}
+
+window.addEventListener("error",function(e){
+ try{showError("Errore iPhone v"+BUILD+": "+(e.message||"errore JavaScript"))}catch(_){}
+});
+window.addEventListener("unhandledrejection",function(e){
+ try{var msg=(e.reason&&e.reason.message)?e.reason.message:String(e.reason||"errore");showError("Errore iPhone v"+BUILD+": "+msg)}catch(_){}
+});
 
 function migrateKey(){
  let key=safeGet(KEY_STORE)||safeGet("commute.tomtomApiKey.v1")||"";
@@ -312,7 +297,8 @@ function getKey(){return safeGet(KEY_STORE)||migrateKey()||""}
 async function geocode(address){
  const key=getKey();
  const u="https://api.tomtom.com/search/2/geocode/"+encodeURIComponent(address)+".json?key="+encodeURIComponent(key)+"&limit=1&countrySet=IT&language=it-IT";
- const r=await fetch(u,{cache:"no-store",mode:"cors"});
+ let r;
+ try{r=await fetch(u,{cache:"no-store",mode:"cors"})}catch(e){throw new Error("Safari non riesce a collegarsi a TomTom")}
  if(!r.ok)throw new Error("TomTom geocoding HTTP "+r.status);
  const j=await r.json();
  if(!j.results||!j.results.length)throw new Error("Indirizzo non trovato");
@@ -334,25 +320,28 @@ async function route(points,opt={}){
   computeTravelTimeFor:"all",routeRepresentation:"polyline",departAt:"now",sectionType:"motorway"
  });
  if(avoidMotorways)q.set("avoid","motorways");
- const r=await fetch("https://api.tomtom.com/routing/1/calculateRoute/"+locs+"/json?"+q.toString(),{cache:"no-store",mode:"cors"});
+ let r;
+ try{r=await fetch("https://api.tomtom.com/routing/1/calculateRoute/"+locs+"/json?"+q.toString(),{cache:"no-store",mode:"cors"})}
+ catch(e){throw new Error("Safari non riesce a collegarsi a TomTom")}
  if(!r.ok)throw new Error("TomTom Routing "+r.status);
  const j=await r.json(),rr=(j.routes&&j.routes[0])?j.routes[0]:null;
  if(!rr||!rr.summary)throw new Error("TomTom non ha restituito un percorso");
  return rr;
 }
+function mins(sec){return Math.max(1,Math.round(Number(sec||0)/60))}
 function parseRoute(rr){
  const s=rr.summary,current=mins(s.travelTimeInSeconds);
  const delay=Math.max(0,Math.round(Number(s.trafficDelayInSeconds||0)/60));
  const noTraffic=s.noTrafficTravelTimeInSeconds?mins(s.noTrafficTravelTimeInSeconds):Math.max(1,current-delay);
  const ratio=current/Math.max(1,noTraffic);
  const motorway=(Array.isArray(rr.sections)?rr.sections:[]).some(x=>String(x.sectionType||"").toLowerCase()==="motorway");
- return{current,delay,noTraffic,ratio,motorway};
+ return {current:current,delay:delay,noTraffic:noTraffic,ratio:ratio,motorway:motorway};
 }
 function a1Level(x){
- if(x.delay>=30||x.ratio>=1.65)return{text:"BLOCCATA",kind:"bad"};
- if(x.delay>=15||x.ratio>=1.40)return{text:"CODA PESANTE",kind:"bad"};
- if(x.delay>=7||x.ratio>=1.20)return{text:"RALLENTATA",kind:"warn"};
- return{text:"SCORREVOLE",kind:"ok"};
+ if(x.delay>=30||x.ratio>=1.65)return{text:"BLOCCATA",kind:"bad",icon:"⛔"};
+ if(x.delay>=15||x.ratio>=1.40)return{text:"CODA PESANTE",kind:"bad",icon:"🔴"};
+ if(x.delay>=7||x.ratio>=1.20)return{text:"RALLENTATA",kind:"warn",icon:"🟠"};
+ return{text:"SCORREVOLE",kind:"ok",icon:"🟢"};
 }
 function normalLevel(x){
  if(x.delay>=20||x.ratio>=1.45)return{text:"RALLENTATA",kind:"bad"};
@@ -366,124 +355,77 @@ function choice(a1,norm){
  if(d>=2)return"NOA1";
  return"TIE";
 }
+function renderTrip(which,pair,ts,state){
+ const t=trips[which],a1=pair.a1,norm=pair.norm,c=choice(a1,norm),al=a1Level(a1),nl=normalLevel(norm);
+ const diff=Math.abs(a1.current-norm.current);
+ t.a1Time.textContent=a1.current;t.normalTime.textContent=norm.current;
+ t.a1Eta.innerHTML="<span>ARRIVO STIMATO</span>"+etaClock(a1.current,ts);
+ t.normalEta.innerHTML="<span>ARRIVO STIMATO</span>"+etaClock(norm.current,ts);
+ setStatus(t.a1Status,al.icon+" "+al.text,al.kind);
+ setStatus(t.normalStatus,nl.text,nl.kind);
+ t.a1Card.classList.toggle("recommended",c==="A1");
+ t.normalCard.classList.toggle("recommended",c==="NOA1");
+ t.choice.className="tripChoice "+(c==="A1"?"a1":c==="NOA1"?"noa1":"tie");
+ if(c==="A1"){
+  t.choice.textContent="✓ A1";
+  t.a1Diff.textContent=diff+" min più veloce";
+  t.normalDiff.textContent=diff+" min più lenta";
+ }else if(c==="NOA1"){
+  t.choice.textContent="✓ NORMALE";
+  t.a1Diff.textContent=diff+" min più lenta";
+  t.normalDiff.textContent=diff+" min più veloce";
+ }else{
+  t.choice.textContent="TEMPI SIMILI";
+  t.a1Diff.textContent="Tempi equivalenti";
+  t.normalDiff.textContent="Tempi equivalenti";
+ }
+ t.updated.textContent=(state==="live"?"Aggiornato ":"Ultimo dato ")+clock(new Date(ts));
+}
+function renderTraffic(data,state="live"){
+ renderTrip("out",data.out,data.ts,state);
+ renderTrip("back",data.back,data.ts,state);
+}
+function loadLast(){
+ try{
+  const d=JSON.parse(safeGet(DATA_STORE)||"null");
+  if(d&&d.out&&d.out.a1&&d.out.norm&&d.back&&d.back.a1&&d.back.norm){renderTraffic(d,"stale");return true}
+ }catch(e){}
+ return false;
+}
 async function ensureA1(rr,fallbackPoints){
  let parsed=parseRoute(rr);
  if(!parsed.motorway){
   try{
-   const f=await route(fallbackPoints),fp=parseRoute(f);
+   const f=await route(fallbackPoints);
+   const fp=parseRoute(f);
    if(fp.motorway)parsed=fp;
   }catch(e){}
  }
  return parsed;
 }
-
-function setVisual(which,mode){
- const img=document.querySelector("#"+which+"VisualImg");
- const ico=document.querySelector("#"+which+"RouteIcon");
- if(mode==="A1"){
-   img.src="./out-card.jpg";
-   ico.className="routeIcon a1"; ico.textContent="A1";
- }else{
-   img.src="./back-card.jpg";
-   ico.className="routeIcon road"; ico.textContent="";
- }
-}
-
-function renderHomeTrip(which,pair){
- const t=homeUi[which],c=choice(pair.a1,pair.norm),diff=Math.abs(pair.a1.current-pair.norm.current);
- const chosen=c==="NOA1"?pair.norm:pair.a1;
- const alt=c==="NOA1"?pair.a1:pair.norm;
- const chosenName=c==="NOA1"?"STRADA NORMALE":c==="TIE"?"A1 / NORMALE":"PRENDI A1";
- const chosenMode=c==="NOA1"?"NORMAL":"A1";
- t.icon.textContent=c==="NOA1"?"STRADA CONSIGLIATA":c==="TIE"?"TEMPI SIMILI":"A1 CONSIGLIATA";
- t.name.textContent=chosenName;
- t.time.textContent=chosen.current+" min";
- t.arrival.textContent="Arrivo "+etaClock(chosen.current);
- t.faster.textContent=c==="TIE"?"≈ tempi quasi uguali":"✓ "+diff+" min più veloce";
- t.alt.innerHTML='Alternativa: <b>'+(c==="NOA1"?"A1 ":"Normale ")+alt.current+' min</b>';
- setVisual(which,chosenMode);
-}
-function renderHome(data,state="live"){
- lastData=data;
- renderHomeTrip("out",data.out);
- renderHomeTrip("back",data.back);
- ui.meta.textContent=(state==="live"?"Aggiornato ":"Ultimo dato ")+clock(new Date(data.ts||Date.now()))+" · automatico ogni 5 min";
- if(!ui.detail.classList.contains("hidden"))renderDetail(currentDetail);
-}
-function loadLast(){
- for(const key of [DATA_STORE,LEGACY_DATA_STORE]){
-  try{
-   const d=JSON.parse(safeGet(key)||"null");
-   if(d&&d.out&&d.out.a1&&d.out.norm&&d.back&&d.back.a1&&d.back.norm){renderHome(d,"stale");return true}
-  }catch(e){}
- }
- return false;
-}
-
-function setStatus(el,level){
- el.textContent=level.text;el.className="status "+level.kind;
-}
-function renderDetail(which){
- if(!lastData)return;
- currentDetail=which;
- const pair=lastData[which],c=choice(pair.a1,pair.norm),diff=Math.abs(pair.a1.current-pair.norm.current);
- const al=a1Level(pair.a1),nl=normalLevel(pair.norm);
- ui.detailTitle.textContent=which==="out"?"Andata":"Ritorno";
- ui.detailPath.textContent=which==="out"?"Reggello → Lavoro (Rifredi)":"Lavoro (Rifredi) → Reggello";
- ui.detailHero.className="detailHero "+which;
- ui.detailDecision.textContent=c==="A1"?"PRENDI A1":c==="NOA1"?"STRADA NORMALE":"TEMPI SIMILI";
- ui.detailSummary.textContent=c==="TIE"?"A1 e strada normale hanno tempi quasi equivalenti":(c==="A1"?"A1":"Strada normale")+" è più veloce di "+diff+" min";
- ui.detailA1Time.textContent=pair.a1.current+" min";
- ui.detailNormalTime.textContent=pair.norm.current+" min";
- ui.detailA1Eta.textContent="Arrivo "+etaClock(pair.a1.current);
- ui.detailNormalEta.textContent="Arrivo "+etaClock(pair.norm.current);
- setStatus(ui.detailA1Status,al);setStatus(ui.detailNormalStatus,nl);
- ui.detailA1Card.classList.toggle("recommended",c==="A1");
- ui.detailNormalCard.classList.toggle("recommended",c==="NOA1");
- ui.detailA1Delta.textContent=c==="A1"?diff+" min più veloce":c==="NOA1"?diff+" min più lenta":"Tempi equivalenti";
- ui.detailNormalDelta.textContent=c==="NOA1"?diff+" min più veloce":c==="A1"?diff+" min più lenta":"Tempi equivalenti";
- ui.detailWaze.href=which==="out"
-  ?"https://waze.com/ul?q=Via%20Panciatichi%2017%2C%20Firenze%2C%20Italia&navigate=yes"
-  :"https://waze.com/ul?q=Via%20J.%20F.%20Kennedy%209%2C%20Reggello%2C%20Firenze%2C%20Italia&navigate=yes";
-}
-function openDetail(which){
- if(!lastData)return;
- renderDetail(which);
- ui.home.classList.add("hidden");ui.detail.classList.remove("hidden");
- window.scrollTo({top:0,behavior:"smooth"});
- history.replaceState(null,"","#"+which);
-}
-function closeDetail(){
- ui.detail.classList.add("hidden");ui.home.classList.remove("hidden");
- history.replaceState(null,"",location.pathname+location.search);
- window.scrollTo({top:0,behavior:"smooth"});
-}
-
 async function refreshTraffic(){
- if(!getKey()){
-  if(!loadLast())ui.settings.classList.add("show");
-  return false;
- }
- ui.settings.classList.remove("show");
- const p=await positions(),rev=NORMAL_VIAS.slice().reverse();
+ if(!getKey()){if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");return false}
+ const p=await positions();
+ const rev=NORMAL_VIAS.slice().reverse();
  const all=await Promise.all([
   route([p.home,p.work]),
   route([p.home,...NORMAL_VIAS,p.work],{avoidMotorways:true}),
   route([p.work,p.home]),
   route([p.work,...rev,p.home],{avoidMotorways:true})
  ]);
- const ensured=await Promise.all([
+ const pair=await Promise.all([
   ensureA1(all[0],[p.home,INCISA,p.work]),
   ensureA1(all[2],[p.work,FIRENZE_SUD,p.home])
  ]);
  const data={
-  out:{a1:ensured[0],norm:parseRoute(all[1])},
-  back:{a1:ensured[1],norm:parseRoute(all[3])},
+  out:{a1:pair[0],norm:parseRoute(all[1])},
+  back:{a1:pair[1],norm:parseRoute(all[3])},
   ts:Date.now()
  };
- safeSet(DATA_STORE,JSON.stringify(data));renderHome(data,"live");return true;
+ safeSet(DATA_STORE,JSON.stringify(data));
+ renderTraffic(data,"live");
+ return true;
 }
-
 function weatherIcon(code){
  code=Number(code);if(code===0)return"☀️";if([1,2].includes(code))return"🌤️";if(code===3)return"☁️";
  if([45,48].includes(code))return"🌫️";if([51,53,55,56,57].includes(code))return"🌦️";
@@ -492,8 +434,10 @@ function weatherIcon(code){
 }
 async function weather(point){
  const q=new URLSearchParams({latitude:point.lat,longitude:point.lon,current:"temperature_2m,weather_code",timezone:"Europe/Rome"});
- const r=await fetch("https://api.open-meteo.com/v1/forecast?"+q.toString(),{cache:"no-store",mode:"cors"});
- if(!r.ok)throw new Error("Meteo HTTP "+r.status);
+ let r;
+ try{r=await fetch("https://api.open-meteo.com/v1/forecast?"+q.toString(),{cache:"no-store",mode:"cors"})}
+ catch(e){throw new Error("Meteo non disponibile")}
+ if(!r.ok)throw new Error("Open-Meteo HTTP "+r.status);
  const j=await r.json();return{temp:Math.round(j.current.temperature_2m),icon:weatherIcon(j.current.weather_code)};
 }
 async function refreshWeather(){
@@ -503,33 +447,41 @@ async function refreshWeather(){
 }
 async function refreshAll(){
  if(busy)return;
- busy=true;ui.refresh.disabled=true;ui.refresh.textContent="…";showError("");
+ busy=true;ui.refresh.textContent="…";ui.refresh.disabled=true;showError("");
  const errs=[];
- await Promise.all([
-  refreshTraffic().catch(e=>{errs.push(e.message||"Traffico non disponibile");loadLast()}),
-  refreshWeather().catch(()=>errs.push("Meteo non disponibile"))
- ]);
+ const traffic=refreshTraffic().catch(e=>{errs.push(e.message||"Traffico non disponibile");loadLast();return false});
+ const met=refreshWeather().catch(e=>{errs.push("Meteo non disponibile");return false});
+ await Promise.all([traffic,met]);
+ ui.meta.textContent="Aggiornato "+clock()+" · automatico ogni 5 min";
  if(errs.length)showError([...new Set(errs)].join(" · "));
- ui.refresh.disabled=false;ui.refresh.textContent="↻";busy=false;
+ busy=false;ui.refresh.textContent="↻";ui.refresh.disabled=false;
 }
+function openSettings(){
+ ui.key.value=getKey();ui.sheetMsg.textContent="";
+ ui.dialog.classList.add("open");ui.dialog.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";
+}
+function closeSettings(){
+ ui.dialog.classList.remove("open");ui.dialog.setAttribute("aria-hidden","true");document.body.style.overflow="";
+}
+ui.settings.addEventListener("click",openSettings);
+ui.close.addEventListener("click",closeSettings);
 ui.refresh.addEventListener("click",refreshAll);
-ui.outCard.addEventListener("click",()=>openDetail("out"));
-ui.backCard.addEventListener("click",()=>openDetail("back"));
-ui.backBtn.addEventListener("click",closeDetail);
-ui.saveKey.addEventListener("click",()=>{
- const k=ui.key.value.trim();
- if(!k)return;
- safeSet(KEY_STORE,k);safeRemove(POS_STORE);ui.settings.classList.remove("show");refreshAll();
+ui.form.addEventListener("submit",async e=>{
+ e.preventDefault();const k=ui.key.value.trim();
+ if(!k){ui.sheetMsg.textContent="Inserisci la chiave TomTom.";return}
+ safeSet(KEY_STORE,k);safeRemove(POS_STORE);ui.sheetMsg.textContent="Salvata. Verifico…";
+ try{await refreshAll();ui.sheetMsg.textContent="Chiave salvata.";setTimeout(closeSettings,450)}
+ catch(e){ui.sheetMsg.textContent=e.message||"Verifica non riuscita"}
 });
+ui.dialog.addEventListener("click",function(e){if(e.target===ui.dialog)closeSettings()});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshAll()});
 
-if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}
+
 loadLast();
-if(location.hash==="#out"&&lastData)openDetail("out");
-if(location.hash==="#back"&&lastData)openDetail("back");
 refreshAll();
-setInterval(refreshAll,REFRESH_MS);
-if(!getKey())ui.settings.classList.add("show");
+timer=setInterval(refreshAll,REFRESH_MS);
+if(!getKey())setTimeout(openSettings,350);
 })();
 </script>
 </body>
