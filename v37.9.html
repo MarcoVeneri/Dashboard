@@ -48,6 +48,21 @@ h1{font-size:40px;line-height:.96;letter-spacing:-.055em;margin:5px 0 8px;font-w
   color:var(--ink);display:grid;place-items:center;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.35);cursor:pointer;font-size:20px}
 .circle:active{transform:scale(.97)}
+.directionSwitch{
+ display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:0 4px 10px;padding:4px;
+ border-radius:16px;background:var(--panel);border:1px solid var(--line);
+ backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:var(--shadow)
+}
+.directionBtn{
+ min-height:38px;border:0;border-radius:12px;background:transparent;color:var(--muted);
+ font-size:12px;font-weight:850;cursor:pointer
+}
+.directionBtn.active{
+ background:var(--panelSolid);color:var(--ink);box-shadow:0 5px 14px rgba(30,45,72,.08),inset 0 1px 0 rgba(255,255,255,.45)
+}
+@media(prefers-color-scheme:dark){
+ .directionBtn.active{background:rgba(255,255,255,.10);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+}
 
 .weather{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .weatherCard{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:10px 12px;
@@ -128,7 +143,7 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
 <main class="app">
   <header class="header">
     <div>
-      <div class="eyebrow">Reggello → Firenze · Via Panciatichi</div>
+      <div id="routeEyebrow" class="eyebrow">Reggello → Firenze · Via Panciatichi</div>
       <h1 id="greeting">Buongiorno</h1>
       <div id="meta" class="meta">Traffico live · aggiornamento automatico</div>
     </div>
@@ -139,6 +154,11 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
   </header>
 
   
+
+  <div class="directionSwitch" role="tablist" aria-label="Direzione traffico">
+    <button id="dirOut" class="directionBtn active" type="button" role="tab" aria-selected="true">Andata · Casa → Firenze</button>
+    <button id="dirBack" class="directionBtn" type="button" role="tab" aria-selected="false">Ritorno · Firenze → Casa</button>
+  </div>
 
   <div id="errorBox" class="error"></div>
 
@@ -186,14 +206,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 37.11 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 37.12 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="37.11";
+const BUILD="37.12";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -210,10 +230,13 @@ const FIRENZE_SUD={lat:43.74225,lon:11.28054};
 const KEY_STORE="morning.tomtomApiKey.v30";
 const POS_STORE="morning.positions.v36";
 const DATA_STORE="morning.lastTraffic.v37";
+const BACK_DATA_STORE="morning.lastTrafficReturn.v1";
 const REFRESH_MS=5*60*1000;
+let currentDirection="out";
 
 const ui={
- greeting:$("#greeting"),meta:$("#meta"),refresh:$("#refreshBtn"),settings:$("#settingsBtn"),error:$("#errorBox"),
+ greeting:$("#greeting"),eyebrow:$("#routeEyebrow"),meta:$("#meta"),refresh:$("#refreshBtn"),settings:$("#settingsBtn"),error:$("#errorBox"),
+ dirOut:$("#dirOut"),dirBack:$("#dirBack"),
  decision:$("#decision"),decisionIcon:$("#decisionIcon"),decisionTitle:$("#decisionTitle"),decisionSub:$("#decisionSub"),decisionLive:$("#decisionLive"),
  a1Card:$("#a1Card"),normalCard:$("#normalCard"),a1Time:$("#a1Time"),normalTime:$("#normalTime"),a1Eta:$("#a1Eta"),normalEta:$("#normalEta"),
  a1Status:$("#a1Status"),normalStatus:$("#normalStatus"),a1Detail:$("#a1Detail"),normalDetail:$("#normalDetail"),
@@ -255,6 +278,32 @@ function greeting(){
 function showError(msg=""){ui.error.textContent=msg;ui.error.classList.toggle("show",!!msg)}
 function setStatus(el,text,kind){el.textContent=text;el.className="routeStatus "+kind}
 function setBar(el,pct,kind){el.style.width=Math.max(3,Math.min(100,pct))+"%";el.className="trafficFill "+(kind||"")}
+
+function activeStore(){return currentDirection==="back"?BACK_DATA_STORE:DATA_STORE}
+function directionInfo(){
+ return currentDirection==="back"
+  ? {startKey:"work",endKey:"home",fallback:FIRENZE_SUD,label:"Firenze → Reggello",closure:"Firenze Sud → Incisa Reggello"}
+  : {startKey:"home",endKey:"work",fallback:INCISA,label:"Reggello → Firenze · Via Panciatichi",closure:"Incisa Reggello → Firenze Sud"};
+}
+function setDirection(direction,refreshNow=true){
+ currentDirection=direction==="back"?"back":"out";
+ const out=currentDirection==="out";
+ ui.dirOut.classList.toggle("active",out);
+ ui.dirBack.classList.toggle("active",!out);
+ ui.dirOut.setAttribute("aria-selected",out?"true":"false");
+ ui.dirBack.setAttribute("aria-selected",out?"false":"true");
+ ui.eyebrow.textContent=directionInfo().label;
+ if(!loadLast()){
+  ui.decision.className="decision loading";
+  ui.decisionIcon.textContent="↻";
+  ui.decisionTitle.textContent="CONTROLLO TRAFFICO";
+  ui.decisionSub.textContent="Confronto A1 e strada normale…";
+  ui.a1Time.textContent="--";ui.normalTime.textContent="--";
+  ui.a1Eta.innerHTML="<span>ARRIVO</span>--:--";
+  ui.normalEta.innerHTML="<span>ARRIVO</span>--:--";
+ }
+ if(refreshNow)refreshAll();
+}
 
 function migrateKey(){
  let key=safeGet(KEY_STORE)||safeGet("commute.tomtomApiKey.v1")||"";
@@ -378,7 +427,7 @@ function renderTraffic(data,state="live"){
  ui.normalEta.innerHTML="<span>ARRIVO</span>"+etaClock(norm.current,baseTs);
  setStatus(ui.a1Status,al.icon+" "+al.text,al.kind);
  setStatus(ui.normalStatus,nl.text,nl.kind);
- ui.a1Detail.textContent=knownA1ClosureNow()?"⛔ Tratto Incisa Reggello → Firenze Sud chiuso per lavori fino alle 05:00":(!a1.motorway?"⛔ A1 non percorribile: TomTom devia fuori autostrada":(a1.delay?`+${a1.delay} min per traffico · senza traffico ~${a1.noTraffic} min`:`nessun ritardo significativo · ~${a1.noTraffic} min senza traffico`));
+ ui.a1Detail.textContent=knownA1ClosureNow()?`⛔ Tratto ${directionInfo().closure} chiuso per lavori fino alle 05:00`:(!a1.motorway?"⛔ A1 non percorribile: TomTom devia fuori autostrada":(a1.delay?`+${a1.delay} min per traffico · senza traffico ~${a1.noTraffic} min`:`nessun ritardo significativo · ~${a1.noTraffic} min senza traffico`));
  ui.normalDetail.textContent=(norm.motorway?"⚠ TomTom ha inserito un tratto autostradale · ":"Percorso più veloce senza autostrada · ")+(norm.delay?`+${norm.delay} min per traffico · senza traffico ~${norm.noTraffic} min`:`~${norm.noTraffic} min senza traffico`);
  setBar(ui.a1Bar,Math.min(100,15+a1.delay*2.7),al.kind);
  setBar(ui.normalBar,Math.min(100,15+norm.delay*2.7),nl.kind);
@@ -405,19 +454,20 @@ function renderTraffic(data,state="live"){
  }
 }
 function loadLast(){
- try{const d=JSON.parse(safeGet(DATA_STORE)||"null");if(d && d.a1 && d.norm){renderTraffic(d,"stale");return true}}catch(e){}
+ try{const d=JSON.parse(safeGet(activeStore())||"null");if(d && d.a1 && d.norm){renderTraffic(d,"stale");return true}}catch(e){}
  return false;
 }
 async function refreshTraffic(){
  if(!getKey()){if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");return false}
  const p=await positions();
+ const info=directionInfo();
+ const start=p[info.startKey],end=p[info.endKey];
 
- // Nessun waypoint artificiale: confronto reale casa -> lavoro.
- // A1: fino a 5 alternative dirette, scegliendo la più veloce che usa davvero l'autostrada.
- // Normale: percorso diretto più veloce con autostrade escluse.
+ // Stessa logica stabile 37.11 in entrambe le direzioni:
+ // fino a 5 alternative dirette per A1 + percorso diretto con autostrade escluse.
  const [a1Options,normr]=await Promise.all([
-   routes([p.home,p.work],{maxAlternatives:5}),
-   route([p.home,p.work],{avoidMotorways:true})
+   routes([start,end],{maxAlternatives:5}),
+   route([start,end],{avoidMotorways:true})
  ]);
  const motorwayOptions=a1Options
    .map(raw=>({raw,parsed:parseRoute(raw)}))
@@ -425,14 +475,14 @@ async function refreshTraffic(){
    .sort((a,b)=>a.parsed.current-b.parsed.current);
  let a1=motorwayOptions.length?motorwayOptions[0].parsed:null;
  if(!a1){
-   const fallback=parseRoute(await route([p.home,INCISA,p.work]));
+   const fallback=parseRoute(await route([start,info.fallback,end]));
    if(fallback.motorway)a1=fallback;
  }
  const norm=parseRoute(normr);
  if(!a1||!a1.motorway)throw new Error("Percorso A1 non valido: TomTom non sta usando l'autostrada.");
  if(norm.motorway)throw new Error("Percorso normale non valido: TomTom ha inserito un tratto autostradale.");
  const data={a1,norm,ts:Date.now()};
- safeSet(DATA_STORE,JSON.stringify(data));
+ safeSet(activeStore(),JSON.stringify(data));
  renderTraffic(data,"live");
  ui.meta.textContent="Traffico live · aggiornato "+clock();
  return true;
@@ -467,6 +517,8 @@ function closeSettings(){
  document.body.style.overflow="";
 }
 ui.settings.addEventListener("click",openSettings);ui.close.addEventListener("click",closeSettings);
+ui.dirOut.addEventListener("click",()=>setDirection("out"));
+ui.dirBack.addEventListener("click",()=>setDirection("back"));
 ui.refresh.addEventListener("click",refreshAll);
 ui.form.addEventListener("submit",async e=>{
  e.preventDefault();const k=ui.key.value.trim();
@@ -490,7 +542,7 @@ try{
  }
 }catch(e){}
 
-greeting();setInterval(greeting,60000);loadLast();refreshAll();timer=setInterval(refreshAll,REFRESH_MS);
+greeting();setDirection("out",false);setInterval(greeting,60000);loadLast();refreshAll();timer=setInterval(refreshAll,REFRESH_MS);
 if(!getKey())setTimeout(openSettings,350);
 })();
 </script>
