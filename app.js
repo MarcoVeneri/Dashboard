@@ -8,6 +8,10 @@
   const START_ADDRESS = "Via J. F. Kennedy 9, Reggello, Firenze, Italia";
   const END_ADDRESS = "Via Panciatichi 17, Firenze, Italia";
 
+  // Punto obbligatorio sulla carreggiata A1 verso Firenze/Bologna (zona Chianti Est).
+  // Serve a rendere il confronto reale: il percorso "Autostrada A1" deve usare davvero l'A1.
+  const A1_REQUIRED_POINT = { lat: 43.73004, lon: 11.33241 };
+
   const $ = (sel) => document.querySelector(sel);
 
   const ui = {
@@ -173,8 +177,10 @@
     return coords;
   }
 
-  async function calculateRoute(key, start, end, avoidMotorways = false) {
-    const locs = `${start.lat},${start.lon}:${end.lat},${end.lon}`;
+  async function calculateRoute(key, start, end, avoidMotorways = false, requiredVia = null) {
+    const locs = requiredVia
+      ? `${start.lat},${start.lon}:${requiredVia.lat},${requiredVia.lon}:${end.lat},${end.lon}`
+      : `${start.lat},${start.lon}:${end.lat},${end.lon}`;
     const params = new URLSearchParams({
       key,
       traffic: "true",
@@ -241,7 +247,7 @@
     const fastState = trafficState(fast);
     const normalState = trafficState(normal);
 
-    ui.fastStatus.textContent = fastState.label;
+    ui.fastStatus.textContent = `${fastState.label} · A1 obbligatoria`;
     ui.normalStatus.textContent = `${normalState.label} · senza autostrada`;
 
     const motorwayWins = diff >= 0;
@@ -258,17 +264,17 @@
       ui.savingValue.textContent = `${diff} min prima`;
       ui.savingValue.style.color = "var(--ok)";
       ui.savingLabel.textContent = "della strada normale";
-      ui.bestBadge.textContent = "A1 CONSENTITA";
+      ui.bestBadge.textContent = "A1 OBBLIGATORIA";
     } else if (diff < 0) {
       ui.savingValue.textContent = `${Math.abs(diff)} min più lenta`;
       ui.savingValue.style.color = "var(--bad)";
       ui.savingLabel.textContent = "della strada normale";
-      ui.bestBadge.textContent = "A1 CONSENTITA";
+      ui.bestBadge.textContent = "A1 OBBLIGATORIA";
     } else {
       ui.savingValue.textContent = "stesso tempo";
       ui.savingValue.style.color = "var(--muted)";
       ui.savingLabel.textContent = "rispetto alla strada normale";
-      ui.bestBadge.textContent = "A1 CONSENTITA";
+      ui.bestBadge.textContent = "A1 OBBLIGATORIA";
     }
 
     paintTrafficBar(ui.fastTrafficBar, fast);
@@ -339,7 +345,7 @@
       const currentCoords = await ensureCoords(key, forceCoords);
 
       const [fast, normal, startWeather, endWeather] = await Promise.all([
-        calculateRoute(key, currentCoords.start, currentCoords.end, false),
+        calculateRoute(key, currentCoords.start, currentCoords.end, false, A1_REQUIRED_POINT),
         calculateRoute(key, currentCoords.start, currentCoords.end, true),
         getWeather(currentCoords.start),
         getWeather(currentCoords.end),
