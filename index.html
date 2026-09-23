@@ -186,14 +186,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 37.10 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 37.11 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="37.10";
+const BUILD="37.11";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -287,7 +287,7 @@ async function positions(){
  const [home,work]=await Promise.all([geocode(HOME_ADDR),geocode(WORK_ADDR)]);
  const p={home,work};safeSet(POS_STORE,JSON.stringify(p));return p;
 }
-async function route(points,{avoidMotorways=false}={}){
+async function routes(points,{avoidMotorways=false,maxAlternatives=0}={}){
  const key=getKey();
  const locs=points.map(p=>`${p.lat},${p.lon}`).join(":");
  const q=new URLSearchParams({
@@ -296,27 +296,29 @@ async function route(points,{avoidMotorways=false}={}){
  });
  q.set("sectionType","motorway");
  if(avoidMotorways)q.set("avoid","motorways");
+ if(maxAlternatives)q.set("maxAlternatives",String(maxAlternatives));
  const url=`https://api.tomtom.com/routing/1/calculateRoute/${locs}/json?${q}`;
  let lastError=null;
  for(let attempt=0;attempt<3;attempt++){
   if(attempt)await new Promise(resolve=>setTimeout(resolve,attempt===1?700:1600));
   let r;
   try{r=await fetch(url,{cache:"no-store",mode:"cors"});}
-  catch(e){
-   lastError=new Error("Safari non riesce a collegarsi a TomTom (rete/CORS)");
-   continue;
-  }
+  catch(e){lastError=new Error("Safari non riesce a collegarsi a TomTom (rete/CORS)");continue;}
   if(r.ok){
-   const j=await r.json(),found=(j.routes && j.routes[0]) ? j.routes[0] : null;
-   if(!found || !found.summary)throw new Error("TomTom non ha restituito un percorso");
+   const j=await r.json(),found=Array.isArray(j.routes)?j.routes.filter(x=>x&&x.summary):[];
+   if(!found.length)throw new Error("TomTom non ha restituito un percorso");
    return found;
   }
   let m="";
-  try{const j=await r.json();m=(j && j.detailedError && j.detailedError.message)||(j && j.error && j.error.description)||""}catch(e){}
+  try{const j=await r.json();m=(j&&j.detailedError&&j.detailedError.message)||(j&&j.error&&j.error.description)||""}catch(e){}
   lastError=new Error(`TomTom Routing ${r.status}${m?": "+m:""}`);
-  if(r.status!==429 && r.status<500)throw lastError;
+  if(r.status!==429&&r.status<500)throw lastError;
  }
  throw lastError||new Error("TomTom temporaneamente non disponibile");
+}
+async function route(points,opt={}){
+ const found=await routes(points,opt);
+ return found[0];
 }
 function mins(sec){return Math.max(1,Math.round(Number(sec||0)/60))}
 function formatDuration(total){
@@ -377,7 +379,7 @@ function renderTraffic(data,state="live"){
  setStatus(ui.a1Status,al.icon+" "+al.text,al.kind);
  setStatus(ui.normalStatus,nl.text,nl.kind);
  ui.a1Detail.textContent=knownA1ClosureNow()?"⛔ Tratto Incisa Reggello → Firenze Sud chiuso per lavori fino alle 05:00":(!a1.motorway?"⛔ A1 non percorribile: TomTom devia fuori autostrada":(a1.delay?`+${a1.delay} min per traffico · senza traffico ~${a1.noTraffic} min`:`nessun ritardo significativo · ~${a1.noTraffic} min senza traffico`));
- ui.normalDetail.textContent=(norm.motorway?"⚠ TomTom ha inserito un tratto autostradale · ":"Via Pontassieve/Sieci · ")+(norm.delay?`+${norm.delay} min per traffico · senza traffico ~${norm.noTraffic} min`:`senza autostrada · ~${norm.noTraffic} min`);
+ ui.normalDetail.textContent=(norm.motorway?"⚠ TomTom ha inserito un tratto autostradale · ":"Percorso più veloce senza autostrada · ")+(norm.delay?`+${norm.delay} min per traffico · senza traffico ~${norm.noTraffic} min`:`~${norm.noTraffic} min senza traffico`);
  setBar(ui.a1Bar,Math.min(100,15+a1.delay*2.7),al.kind);
  setBar(ui.normalBar,Math.min(100,15+norm.delay*2.7),nl.kind);
  ui.a1Card.classList.toggle("recommended",c==="A1");
@@ -410,24 +412,24 @@ async function refreshTraffic(){
  if(!getKey()){if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");return false}
  const p=await positions();
 
- // Percorsi realmente indipendenti e forzati:
- // A1 = ingresso Incisa/Reggello -> carreggiata A1 (Chianti) -> Firenze Sud.
- // Normale = Pontassieve -> Sieci -> Compiobbi -> Rovezzano, con autostrade vietate.
- // A1: forza solo l'ingresso di Incisa. Non imponiamo uscita/intermedi:
- // i waypoint multipli allungavano artificialmente il tempo dell'autostrada.
- // Se TomTom non rileva autostrada, facciamo un secondo tentativo con un solo
- // punto sulla carreggiata A1, senza forzare anche Firenze Sud.
- const [a1First,normr]=await Promise.all([
-   route([p.home,INCISA,p.work]),
-   route([p.home,...NORMAL_VIAS,p.work],{avoidMotorways:true})
+ // Nessun waypoint artificiale: confronto reale casa -> lavoro.
+ // A1: fino a 5 alternative dirette, scegliendo la più veloce che usa davvero l'autostrada.
+ // Normale: percorso diretto più veloce con autostrade escluse.
+ const [a1Options,normr]=await Promise.all([
+   routes([p.home,p.work],{maxAlternatives:5}),
+   route([p.home,p.work],{avoidMotorways:true})
  ]);
- let a1=parseRoute(a1First);
- if(!a1.motorway){
-   const a1Fallback=await route([p.home,INCISA,A1_CHIANTI,p.work]);
-   a1=parseRoute(a1Fallback);
+ const motorwayOptions=a1Options
+   .map(raw=>({raw,parsed:parseRoute(raw)}))
+   .filter(x=>x.parsed.motorway)
+   .sort((a,b)=>a.parsed.current-b.parsed.current);
+ let a1=motorwayOptions.length?motorwayOptions[0].parsed:null;
+ if(!a1){
+   const fallback=parseRoute(await route([p.home,INCISA,p.work]));
+   if(fallback.motorway)a1=fallback;
  }
  const norm=parseRoute(normr);
- if(!a1.motorway)throw new Error("Percorso A1 non valido: TomTom non sta usando l'autostrada.");
+ if(!a1||!a1.motorway)throw new Error("Percorso A1 non valido: TomTom non sta usando l'autostrada.");
  if(norm.motorway)throw new Error("Percorso normale non valido: TomTom ha inserito un tratto autostradale.");
  const data={a1,norm,ts:Date.now()};
  safeSet(DATA_STORE,JSON.stringify(data));
