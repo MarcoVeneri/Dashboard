@@ -1,7 +1,7 @@
 {
-  "name": "Mattino Traffico v37.11",
+  "name": "Mattino Traffico v37.12",
   "short_name": "Mattino",
-  "start_url": "./v37.9.html?v=37.11",
+  "start_url": "./v37.9.html?v=37.12",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f5f8",
