@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0f14" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mattino">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="icon" href="./icon-192.png" type="image/png">
+<title>Mattino · Traffico</title>
+<style>
+:root{
+  --bg:#f3f5f8;--panel:rgba(255,255,255,.78);--panelSolid:#fff;--ink:#0d1424;--muted:#707a8d;
+  --line:rgba(110,124,150,.20);--green:#22bb67;--green2:#079454;--red:#f15047;--red2:#c93232;
+  --orange:#ff912f;--blue:#197cff;--shadow:0 16px 45px rgba(30,45,72,.10);
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0c0f14;--panel:rgba(25,29,38,.78);--panelSolid:#171b23;--ink:#f4f7fb;--muted:#9aa5b8;
+    --line:rgba(255,255,255,.11);--shadow:0 20px 55px rgba(0,0,0,.30)}
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:
+  radial-gradient(circle at 80% -5%,rgba(255,198,88,.17),transparent 28%),
+  radial-gradient(circle at 5% 15%,rgba(59,126,255,.10),transparent 30%),var(--bg);
+  color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+body{min-height:100dvh;overflow-x:hidden}
+button,input,a{font:inherit}
+button,a{-webkit-tap-highlight-color:transparent}
+.app{width:min(100%,560px);margin:0 auto;min-height:100dvh;padding:
+  max(14px,env(safe-area-inset-top)) max(13px,env(safe-area-inset-right))
+  max(18px,env(safe-area-inset-bottom)) max(13px,env(safe-area-inset-left))}
+.header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:4px 4px 12px}
+.eyebrow{font-size:13px;color:var(--muted);font-weight:650}
+h1{font-size:40px;line-height:.96;letter-spacing:-.055em;margin:5px 0 8px;font-weight:820}
+.meta{font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:8px}
+.circle{width:45px;height:45px;border-radius:50%;border:1px solid var(--line);background:var(--panel);
+  color:var(--ink);display:grid;place-items:center;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35);cursor:pointer;font-size:20px}
+.circle:active{transform:scale(.97)}
+
+.weather{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.weatherCard{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:10px 12px;
+  display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:var(--shadow)}
+.weatherName{font-size:10px;font-weight:800;letter-spacing:.07em;color:var(--muted)}
+.weatherValue{font-size:25px;font-weight:820;margin-top:2px;letter-spacing:-.04em}
+.weatherIcon{font-size:27px}
+
+.decision{border-radius:28px;padding:18px;color:#fff;position:relative;overflow:hidden;margin-bottom:10px;box-shadow:0 20px 48px rgba(28,130,82,.20)}
+.decision.a1{background:linear-gradient(145deg,var(--green),var(--green2))}
+.decision.noa1{background:linear-gradient(145deg,var(--red),var(--red2));box-shadow:0 20px 48px rgba(196,49,46,.22)}
+.decision.tie{background:linear-gradient(145deg,#687386,#4f596a);box-shadow:0 20px 48px rgba(60,70,88,.18)}
+.decision.loading{background:linear-gradient(145deg,#748093,#5c6676)}
+.decision:after{content:"";position:absolute;width:230px;height:230px;border-radius:50%;right:-90px;top:-130px;background:rgba(255,255,255,.09)}
+.decisionTop{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+.decisionIcon{width:52px;height:52px;border-radius:17px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:27px}
+.decisionKicker{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.82}
+.decisionTitle{font-size:31px;font-weight:900;line-height:1;letter-spacing:-.05em;margin-top:2px}
+.decisionSub{font-size:13px;margin-top:6px;opacity:.95}
+.live{margin-left:auto;align-self:flex-start;border-radius:999px;padding:6px 8px;background:rgba(255,255,255,.15);font-size:9px;font-weight:800}
+
+.routes{display:grid;grid-template-columns:1fr;gap:10px}
+.route{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:15px;box-shadow:var(--shadow);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);min-height:178px}
+.route.recommended{outline:2px solid rgba(34,187,103,.68);outline-offset:-2px}
+.routeName{font-size:11px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.routeTime{font-size:52px;font-weight:900;letter-spacing:-.065em;line-height:.95;margin-top:10px}
+.routeUnit{font-size:12px;font-weight:750;color:var(--muted);margin-left:3px}
+.routeMain{display:flex;align-items:baseline;gap:16px;flex-wrap:nowrap;margin-top:10px}
+.routeMetric{padding:0;min-width:0}
+.routeMetric+.routeMetric{border-left:0}
+.routeMetricLabel{display:none}
+.routeEta{font-size:52px!important;font-weight:900;color:var(--ink);line-height:.95;letter-spacing:-.065em;white-space:nowrap}
+.routeEta span{display:inline;font-size:11px;font-weight:850;letter-spacing:.09em;color:var(--muted);margin-right:7px;text-transform:uppercase;vertical-align:middle}
+.routeStatus{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:900;border-radius:999px;padding:8px 11px;letter-spacing:.02em}
+.ok{background:rgba(34,187,103,.12);color:#13884c}.warn{background:rgba(255,145,47,.14);color:#c56c18}.bad{background:rgba(241,80,71,.13);color:#c83b37}.neutral{background:rgba(110,124,150,.12);color:var(--muted)}
+.routeStatus.ok{background:linear-gradient(135deg,#23bd69,#089455);color:#fff;box-shadow:0 8px 18px rgba(8,148,85,.20)}
+.routeStatus.warn{background:linear-gradient(135deg,#ffa13a,#e67a16);color:#fff;box-shadow:0 8px 18px rgba(230,122,22,.20)}
+.routeStatus.bad{background:linear-gradient(135deg,#f05249,#c92f2f);color:#fff;box-shadow:0 8px 20px rgba(201,47,47,.25)}
+.routeDetail{font-size:11px;color:var(--muted);line-height:1.35;margin-top:9px;min-height:30px}
+.diff{font-size:12px;font-weight:800;margin-top:7px}
+
+.trafficBar{height:7px;border-radius:999px;background:rgba(120,130,150,.13);overflow:hidden;margin-top:10px}
+.trafficFill{height:100%;width:0;border-radius:inherit;transition:width .35s ease;background:var(--green)}
+.trafficFill.warn{background:var(--orange)}.trafficFill.bad{background:var(--red)}
+
+.waze{display:flex;align-items:center;justify-content:center;text-decoration:none;min-height:54px;margin-top:10px;border-radius:19px;background:#0a76f6;color:#fff;font-weight:820;font-size:15px;box-shadow:0 15px 34px rgba(10,118,246,.20)}
+.note{font-size:10px;color:var(--muted);text-align:center;margin:8px 12px 0;line-height:1.35}
+.error{display:none;margin:0 0 10px;border:1px solid rgba(241,80,71,.24);background:rgba(241,80,71,.10);color:#bd3935;border-radius:15px;padding:9px 11px;font-size:11px;line-height:1.35}
+.error.show{display:block}
+
+.modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(7,11,19,.38);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:flex-end;justify-content:center;padding:9px}
+.modal.open{display:flex}
+.sheet{width:min(100%,470px);background:var(--panelSolid);border:1px solid var(--line);border-radius:27px;padding:17px;box-shadow:0 35px 90px rgba(0,0,0,.28);padding-bottom:max(17px,env(safe-area-inset-bottom))}
+.sheetHead{display:flex;align-items:center;justify-content:space-between}
+.sheetTitle{font-size:23px;font-weight:850}
+.sheet p{font-size:11px;color:var(--muted);line-height:1.45}
+label{display:block;font-size:10px;font-weight:820;margin:13px 0 6px}
+input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 11px;font-size:16px}
+.save{width:100%;height:48px;border:0;border-radius:14px;background:var(--ink);color:var(--panelSolid);font-weight:820;margin-top:14px}
+.sheetMsg{font-size:10px;color:var(--muted);margin-top:8px}.version{text-align:center;color:var(--muted);font-size:9px;margin-top:12px}
+
+@media(max-height:720px){
+ .app{padding-top:max(7px,env(safe-area-inset-top))}.header{padding-bottom:8px}h1{font-size:33px;margin:3px 0 5px}
+ .weather{margin-bottom:7px}.weatherCard{padding:7px 10px}.weatherValue{font-size:21px}.weatherIcon{font-size:22px}
+ .decision{padding:13px;border-radius:22px;margin-bottom:7px}.decisionIcon{width:43px;height:43px;border-radius:13px;font-size:22px}
+ .decisionTitle{font-size:25px}.decisionSub{font-size:11px;margin-top:4px}
+ .routes{gap:8px}.route{padding:12px;border-radius:20px;min-height:154px}.routeTime{font-size:43px;margin-top:0}.routeEta{font-size:43px!important}.routeMetric{padding:0}
+ .routeStatus{margin-top:7px;padding:6px 8px;font-size:10px}.routeDetail{font-size:10px;margin-top:6px}.trafficBar{margin-top:7px}
+ .waze{min-height:47px;margin-top:7px}.note{margin-top:5px}
+}
+@media(min-width:760px){
+ .app{width:min(100%,720px);padding:24px}.routes{grid-template-columns:1fr;gap:14px}.route{min-height:190px;padding:20px}.routeTime{font-size:64px}.routeEta{font-size:64px!important}.decisionTitle{font-size:38px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="header">
+    <div>
+      <div class="eyebrow">Reggello → Firenze · Via Panciatichi</div>
+      <h1 id="greeting">Buongiorno</h1>
+      <div id="meta" class="meta">Traffico live · aggiornamento automatico</div>
+    </div>
+    <div class="actions">
+      <button id="refreshBtn" class="circle" type="button" aria-label="Aggiorna">↻</button>
+      <button id="settingsBtn" class="circle" type="button" aria-label="Impostazioni">⚙︎</button>
+    </div>
+  </header>
+
+  
+
+  <div id="errorBox" class="error"></div>
+
+  <section id="decision" class="decision loading" aria-live="polite">
+    <div class="decisionTop">
+      <div id="decisionIcon" class="decisionIcon">↻</div>
+      <div>
+        <div class="decisionKicker">SCELTA CONSIGLIATA</div>
+        <div id="decisionTitle" class="decisionTitle">CONTROLLO TRAFFICO</div>
+        <div id="decisionSub" class="decisionSub">Confronto A1 e strada normale…</div>
+      </div>
+      <div id="decisionLive" class="live">LIVE</div>
+    </div>
+  </section>
+
+  <section class="routes">
+    <article id="a1Card" class="route">
+      <div class="routeName">A1 · AUTOSTRADA</div>
+      <div class="routeMain"><div><span id="a1Time" class="routeTime">--</span><span class="routeUnit">min</span></div><div id="a1Eta" class="routeEta"><span>ARRIVO</span>--:--</div></div>
+      <div id="a1Status" class="routeStatus neutral">IN ATTESA</div>
+      <div id="a1Detail" class="routeDetail">Traffico A1 in caricamento…</div>
+      <div class="trafficBar"><div id="a1Bar" class="trafficFill"></div></div>
+      <div id="a1Diff" class="diff"></div>
+    </article>
+
+    <article id="normalCard" class="route">
+      <div class="routeName">STRADA NORMALE</div>
+      <div class="routeMain"><div><span id="normalTime" class="routeTime">--</span><span class="routeUnit">min</span></div><div id="normalEta" class="routeEta"><span>ARRIVO</span>--:--</div></div>
+      <div id="normalStatus" class="routeStatus neutral">ALTERNATIVA</div>
+      <div id="normalDetail" class="routeDetail">Percorso senza autostrada</div>
+      <div class="trafficBar"><div id="normalBar" class="trafficFill"></div></div>
+      <div id="normalDiff" class="diff"></div>
+    </article>
+  </section>
+</main>
+
+<div id="settingsDialog" class="modal" aria-hidden="true">
+  <form id="settingsForm" class="sheet">
+    <div class="sheetHead">
+      <div class="sheetTitle">Impostazioni</div>
+      <button id="closeBtn" class="circle" type="button" style="width:38px;height:38px">×</button>
+    </div>
+    <p>La chiave TomTom viene salvata solo nel browser di questo dispositivo. Non viene inserita nei file GitHub.</p>
+    <label for="tomtomKey">Chiave API TomTom</label>
+    <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
+    <button class="save" type="submit">Salva e verifica</button>
+    <div id="sheetMsg" class="sheetMsg"></div>
+    <div class="version">Mattino Traffico · versione 37.11 · iPhone-safe · single-file JS/CSS</div>
+  </form>
+</div>
+
+<script>
+(()=>{
+"use strict";
+const BUILD="37.11";
+const $=s=>document.querySelector(s);
+const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
+const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
+const NORMAL_VIAS=[
+ {lat:43.77477,lon:11.43109}, // Pontassieve
+ {lat:43.79028,lon:11.39310}, // Sieci
+ {lat:43.78437,lon:11.36114}, // Compiobbi
+ {lat:43.76646,lon:11.31282}  // Rovezzano
+];
+const INCISA={lat:43.66393,lon:11.45768};
+const A1_CHIANTI={lat:43.73004,lon:11.33241};
+const FIRENZE_SUD={lat:43.74225,lon:11.28054};
+
+const KEY_STORE="morning.tomtomApiKey.v30";
+const POS_STORE="morning.positions.v36";
+const DATA_STORE="morning.lastTraffic.v37";
+const REFRESH_MS=5*60*1000;
+
+const ui={
+ greeting:$("#greeting"),meta:$("#meta"),refresh:$("#refreshBtn"),settings:$("#settingsBtn"),error:$("#errorBox"),
+ decision:$("#decision"),decisionIcon:$("#decisionIcon"),decisionTitle:$("#decisionTitle"),decisionSub:$("#decisionSub"),decisionLive:$("#decisionLive"),
+ a1Card:$("#a1Card"),normalCard:$("#normalCard"),a1Time:$("#a1Time"),normalTime:$("#normalTime"),a1Eta:$("#a1Eta"),normalEta:$("#normalEta"),
+ a1Status:$("#a1Status"),normalStatus:$("#normalStatus"),a1Detail:$("#a1Detail"),normalDetail:$("#normalDetail"),
+ a1Bar:$("#a1Bar"),normalBar:$("#normalBar"),a1Diff:$("#a1Diff"),normalDiff:$("#normalDiff"),
+ dialog:$("#settingsDialog"),form:$("#settingsForm"),close:$("#closeBtn"),key:$("#tomtomKey"),sheetMsg:$("#sheetMsg")
+};
+
+let busy=false,timer=null;
+
+function safeGet(k){try{return window.localStorage ? localStorage.getItem(k) : ""}catch(e){return ""}}
+function safeSet(k,v){try{if(window.localStorage)localStorage.setItem(k,v);return true}catch(e){return false}}
+function safeRemove(k){try{if(window.localStorage)localStorage.removeItem(k)}catch(e){}}
+
+window.addEventListener("error",function(e){
+  try{
+    var msg=String((e&&e.message)||"");
+    if(!msg || msg==="Script error." || msg==="Script error") return;
+    showError("Errore iPhone v"+BUILD+": "+msg);
+  }catch(_){}
+});
+window.addEventListener("unhandledrejection",function(e){
+  try{
+    var msg=(e.reason && e.reason.message)?e.reason.message:String(e.reason||"errore");
+    showError("Errore iPhone v"+BUILD+": "+msg);
+  }catch(_){}
+});
+
+function clock(d=new Date()){
+ return new Intl.DateTimeFormat("it-IT",{hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d);
+}
+function etaClock(minutes,baseTs=Date.now()){
+ const base=Number(baseTs)||Date.now();
+ return clock(new Date(base+Math.max(0,Number(minutes)||0)*60000));
+}
+function greeting(){
+ const h=Number(new Intl.DateTimeFormat("en",{hour:"2-digit",hourCycle:"h23",timeZone:"Europe/Rome"}).format(new Date()));
+ ui.greeting.textContent=h<12?"Buongiorno":h<18?"Buon pomeriggio":"Buonasera";
+}
+function showError(msg=""){ui.error.textContent=msg;ui.error.classList.toggle("show",!!msg)}
+function setStatus(el,text,kind){el.textContent=text;el.className="routeStatus "+kind}
+function setBar(el,pct,kind){el.style.width=Math.max(3,Math.min(100,pct))+"%";el.className="trafficFill "+(kind||"")}
+
+function migrateKey(){
+ let key=safeGet(KEY_STORE)||safeGet("commute.tomtomApiKey.v1")||"";
+ if(!key){
+  for(const old of ["morningCfgV25","morningMilanoV23","morningMilanoV22","morningMilanoV21","morningMilanoV20"]){
+   try{const o=JSON.parse(safeGet(old)||"{}");if(o.tomtom){key=o.tomtom;break}}catch(e){}
+  }
+ }
+ if(key)safeSet(KEY_STORE,key);
+ return key;
+}
+function getKey(){return safeGet(KEY_STORE)||migrateKey()||""}
+
+async function geocode(address){
+ const key=getKey();
+ const u="https://api.tomtom.com/search/2/geocode/"+encodeURIComponent(address)+".json?key="+encodeURIComponent(key)+"&limit=1&countrySet=IT&language=it-IT";
+ var r;
+ try{r=await fetch(u,{cache:"no-store",mode:"cors"});}
+ catch(e){throw new Error("Safari non riesce a collegarsi a TomTom (rete/CORS)");}
+ if(!r.ok)throw new Error("TomTom geocoding HTTP "+r.status);
+ const j=await r.json();
+ if(!j.results || !j.results.length)throw new Error("Indirizzo non trovato");
+ return j.results[0].position;
+}
+async function positions(){
+ try{
+  const p=JSON.parse(safeGet(POS_STORE)||"null");
+  if(p && p.home && p.home.lat && p.work && p.work.lat)return p;
+ }catch(e){}
+ const [home,work]=await Promise.all([geocode(HOME_ADDR),geocode(WORK_ADDR)]);
+ const p={home,work};safeSet(POS_STORE,JSON.stringify(p));return p;
+}
+async function routes(points,{avoidMotorways=false,maxAlternatives=0}={}){
+ const key=getKey();
+ const locs=points.map(p=>`${p.lat},${p.lon}`).join(":");
+ const q=new URLSearchParams({
+  key,traffic:"true",travelMode:"car",routeType:"fastest",
+  computeTravelTimeFor:"all",routeRepresentation:"polyline",departAt:"now"
+ });
+ q.set("sectionType","motorway");
+ if(avoidMotorways)q.set("avoid","motorways");
+ if(maxAlternatives)q.set("maxAlternatives",String(maxAlternatives));
+ const url=`https://api.tomtom.com/routing/1/calculateRoute/${locs}/json?${q}`;
+ let lastError=null;
+ for(let attempt=0;attempt<3;attempt++){
+  if(attempt)await new Promise(resolve=>setTimeout(resolve,attempt===1?700:1600));
+  let r;
+  try{r=await fetch(url,{cache:"no-store",mode:"cors"});}
+  catch(e){lastError=new Error("Safari non riesce a collegarsi a TomTom (rete/CORS)");continue;}
+  if(r.ok){
+   const j=await r.json(),found=Array.isArray(j.routes)?j.routes.filter(x=>x&&x.summary):[];
+   if(!found.length)throw new Error("TomTom non ha restituito un percorso");
+   return found;
+  }
+  let m="";
+  try{const j=await r.json();m=(j&&j.detailedError&&j.detailedError.message)||(j&&j.error&&j.error.description)||""}catch(e){}
+  lastError=new Error(`TomTom Routing ${r.status}${m?": "+m:""}`);
+  if(r.status!==429&&r.status<500)throw lastError;
+ }
+ throw lastError||new Error("TomTom temporaneamente non disponibile");
+}
+async function route(points,opt={}){
+ const found=await routes(points,opt);
+ return found[0];
+}
+function mins(sec){return Math.max(1,Math.round(Number(sec||0)/60))}
+function formatDuration(total){
+ total=Math.max(0,Math.round(Number(total)||0));
+ if(total<60)return {value:String(total),unit:"min",long:total+" min"};
+ const h=Math.floor(total/60),m=total%60;
+ return {value:h+" ora"+(h!==1?"e":"")+(m?" "+String(m).padStart(2,"0"):""),unit:m?"min":"",long:h+" ora"+(h!==1?"e":"")+(m?" e "+m+" minuti":"")};
+}
+function parseRoute(route){
+ const s=route.summary;
+ const current=mins(s.travelTimeInSeconds);
+ const delayReal=Math.max(0,Math.round(Number(s.trafficDelayInSeconds||0)/60));
+ const noTraffic=s.noTrafficTravelTimeInSeconds?mins(s.noTrafficTravelTimeInSeconds):Math.max(1,current-delayReal);
+ const ratio=current/Math.max(1,noTraffic);
+ const sections=Array.isArray(route.sections)?route.sections:[];
+ const motorway=sections.some(x=>String(x.sectionType||"").toLowerCase()==="motorway");
+ return {current,delay:delayReal,noTraffic,ratio,motorway};
+}
+function knownA1ClosureNow(){
+ const now=Date.now();
+ const start=Date.parse("2026-09-22T22:00:00+02:00");
+ const end=Date.parse("2026-09-23T05:00:00+02:00");
+ return now>=start && now<end;
+}
+function a1Level(x){
+ if(knownA1ClosureNow())return {text:"CHIUSA PER LAVORI",kind:"bad",icon:"⛔",closed:true};
+ if(!x.motorway)return {text:"NON PERCORRIBILE",kind:"bad",icon:"⛔",closed:true};
+ if(x.delay>=30||x.ratio>=1.65)return {text:"BLOCCATA",kind:"bad",icon:"⛔"};
+ if(x.delay>=15||x.ratio>=1.40)return {text:"CODA PESANTE",kind:"bad",icon:"🔴"};
+ if(x.delay>=7||x.ratio>=1.20)return {text:"RALLENTATA",kind:"warn",icon:"🟠"};
+ return {text:"SCORREVOLE",kind:"ok",icon:"🟢"};
+}
+function normalLevel(x){
+ if(x.delay>=20||x.ratio>=1.45)return {text:"RALLENTATA",kind:"bad"};
+ if(x.delay>=8||x.ratio>=1.22)return {text:"TRAFFICO",kind:"warn"};
+ return {text:"SCORREVOLE",kind:"ok"};
+}
+function choice(a1,norm){
+ const blocked=knownA1ClosureNow()||!a1.motorway||a1.delay>=30||a1.ratio>=1.65;
+ if(blocked)return "NOA1";
+ const d=a1.current-norm.current;
+ if(d<=-2)return "A1";
+ if(d>=2)return "NOA1";
+ return "TIE";
+}
+function renderTraffic(data,state="live"){
+ const {a1,norm}=data, c=choice(a1,norm), al=a1Level(a1), nl=normalLevel(norm);
+ const diff=Math.abs(a1.current-norm.current);
+
+ const a1Fmt=formatDuration(a1.current), normFmt=formatDuration(norm.current);
+ ui.a1Time.textContent=a1Fmt.value; ui.normalTime.textContent=normFmt.value;
+ const a1Unit=ui.a1Time.nextElementSibling, normUnit=ui.normalTime.nextElementSibling;
+ if(a1Unit)a1Unit.textContent=a1Fmt.unit;
+ if(normUnit)normUnit.textContent=normFmt.unit;
+ const baseTs=Number(data.ts)||Date.now();
+ ui.a1Eta.innerHTML="<span>ARRIVO</span>"+etaClock(a1.current,baseTs);
+ ui.normalEta.innerHTML="<span>ARRIVO</span>"+etaClock(norm.current,baseTs);
+ setStatus(ui.a1Status,al.icon+" "+al.text,al.kind);
+ setStatus(ui.normalStatus,nl.text,nl.kind);
+ ui.a1Detail.textContent=knownA1ClosureNow()?"⛔ Tratto Incisa Reggello → Firenze Sud chiuso per lavori fino alle 05:00":(!a1.motorway?"⛔ A1 non percorribile: TomTom devia fuori autostrada":(a1.delay?`+${a1.delay} min per traffico · senza traffico ~${a1.noTraffic} min`:`nessun ritardo significativo · ~${a1.noTraffic} min senza traffico`));
+ ui.normalDetail.textContent=(norm.motorway?"⚠ TomTom ha inserito un tratto autostradale · ":"Percorso più veloce senza autostrada · ")+(norm.delay?`+${norm.delay} min per traffico · senza traffico ~${norm.noTraffic} min`:`~${norm.noTraffic} min senza traffico`);
+ setBar(ui.a1Bar,Math.min(100,15+a1.delay*2.7),al.kind);
+ setBar(ui.normalBar,Math.min(100,15+norm.delay*2.7),nl.kind);
+ ui.a1Card.classList.toggle("recommended",c==="A1");
+ ui.normalCard.classList.toggle("recommended",c==="NOA1");
+
+ ui.decision.className="decision "+(c==="A1"?"a1":c==="NOA1"?"noa1":"tie");
+ ui.decisionLive.textContent=state==="live"?"LIVE":"ULTIMO DATO";
+ if(c==="A1"){
+   ui.decisionIcon.textContent="🛣️";
+   ui.decisionTitle.textContent="A1";
+   ui.decisionSub.textContent=`A1 ${formatDuration(a1.current).long} · normale ${formatDuration(norm.current).long} · risparmi ${diff} min`;
+   ui.a1Diff.textContent=`${diff} min più veloce`;ui.normalDiff.textContent=`${diff} min più lenta`;
+ } else if(c==="NOA1"){
+   ui.decisionIcon.textContent=al.closed||al.text==="BLOCCATA"?"⛔":"↪️";
+   ui.decisionTitle.textContent="STRADA NORMALE";
+   ui.decisionSub.textContent=al.closed?`Normale ${formatDuration(norm.current).long}`:`Normale ${formatDuration(norm.current).long} · A1 ${formatDuration(a1.current).long}${diff?" · risparmi "+diff+" min":""}`;
+   ui.a1Diff.textContent=al.closed?al.text:`${diff} min più lenta`;ui.normalDiff.textContent=al.closed?"Percorso consigliato":`${diff} min più veloce`;
+ } else {
+   ui.decisionIcon.textContent="≈";
+   ui.decisionTitle.textContent="TEMPI SIMILI";
+   ui.decisionSub.textContent=`A1 ${formatDuration(a1.current).long} · normale ${formatDuration(norm.current).long}`;
+   ui.a1Diff.textContent="Tempi equivalenti";ui.normalDiff.textContent="Tempi equivalenti";
+ }
+}
+function loadLast(){
+ try{const d=JSON.parse(safeGet(DATA_STORE)||"null");if(d && d.a1 && d.norm){renderTraffic(d,"stale");return true}}catch(e){}
+ return false;
+}
+async function refreshTraffic(){
+ if(!getKey()){if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");return false}
+ const p=await positions();
+
+ // Nessun waypoint artificiale: confronto reale casa -> lavoro.
+ // A1: fino a 5 alternative dirette, scegliendo la più veloce che usa davvero l'autostrada.
+ // Normale: percorso diretto più veloce con autostrade escluse.
+ const [a1Options,normr]=await Promise.all([
+   routes([p.home,p.work],{maxAlternatives:5}),
+   route([p.home,p.work],{avoidMotorways:true})
+ ]);
+ const motorwayOptions=a1Options
+   .map(raw=>({raw,parsed:parseRoute(raw)}))
+   .filter(x=>x.parsed.motorway)
+   .sort((a,b)=>a.parsed.current-b.parsed.current);
+ let a1=motorwayOptions.length?motorwayOptions[0].parsed:null;
+ if(!a1){
+   const fallback=parseRoute(await route([p.home,INCISA,p.work]));
+   if(fallback.motorway)a1=fallback;
+ }
+ const norm=parseRoute(normr);
+ if(!a1||!a1.motorway)throw new Error("Percorso A1 non valido: TomTom non sta usando l'autostrada.");
+ if(norm.motorway)throw new Error("Percorso normale non valido: TomTom ha inserito un tratto autostradale.");
+ const data={a1,norm,ts:Date.now()};
+ safeSet(DATA_STORE,JSON.stringify(data));
+ renderTraffic(data,"live");
+ ui.meta.textContent="Traffico live · aggiornato "+clock();
+ return true;
+}
+
+async function refreshAll(){
+ if(busy)return false;
+ busy=true;ui.refresh.textContent="…";ui.refresh.disabled=true;showError("");
+ let ok=false,errorMessage="";
+ try{
+   ok=await refreshTraffic();
+ }catch(e){
+   errorMessage=e&&e.message?e.message:"Traffico non disponibile";
+   const cached=loadLast();
+   ui.meta.textContent=cached?"Ultimo dato disponibile · nuovo tentativo automatico":"Traffico temporaneamente non disponibile";
+   if(!cached){
+     const serverError=/TomTom Routing (429|5\d\d)/.test(errorMessage);
+     showError(serverError?"TomTom ha restituito un errore temporaneo. Riprovo automaticamente.":errorMessage);
+   }
+ }finally{
+   busy=false;ui.refresh.textContent="↻";ui.refresh.disabled=false;
+ }
+ return ok;
+}
+function openSettings(){
+ ui.key.value=getKey();ui.sheetMsg.textContent="";
+ ui.dialog.classList.add("open");ui.dialog.setAttribute("aria-hidden","false");
+ document.body.style.overflow="hidden";
+}
+function closeSettings(){
+ ui.dialog.classList.remove("open");ui.dialog.setAttribute("aria-hidden","true");
+ document.body.style.overflow="";
+}
+ui.settings.addEventListener("click",openSettings);ui.close.addEventListener("click",closeSettings);
+ui.refresh.addEventListener("click",refreshAll);
+ui.form.addEventListener("submit",async e=>{
+ e.preventDefault();const k=ui.key.value.trim();
+ if(!k){ui.sheetMsg.textContent="Inserisci la chiave TomTom.";return}
+ safeSet(KEY_STORE,k);safeRemove(POS_STORE);ui.sheetMsg.textContent="Salvata. Verifico…";
+ try{await refreshAll();ui.sheetMsg.textContent="Chiave salvata.";setTimeout(closeSettings,450)}
+ catch(e){ui.sheetMsg.textContent=e.message||"Verifica non riuscita"}
+});
+ui.dialog.addEventListener("click",function(e){if(e.target===ui.dialog)closeSettings();});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshAll()});
+
+// Elimina il vecchio cache-first del solo progetto Dashboard: evita che iPhone riapra file obsoleti.
+try{
+ if("serviceWorker" in navigator){
+   navigator.serviceWorker.getRegistrations().then(regs=>regs.forEach(r=>{
+     try{if(String(r.scope||"").includes("/Dashboard/"))r.unregister();}catch(e){}
+   })).catch(()=>{});
+ }
+ if("caches" in window){
+   caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("commute-dashboard-")).map(k=>caches.delete(k)))).catch(()=>{});
+ }
+}catch(e){}
+
+greeting();setInterval(greeting,60000);loadLast();refreshAll();timer=setInterval(refreshAll,REFRESH_MS);
+if(!getKey())setTimeout(openSettings,350);
+})();
+</script>
+</body>
+</html>
