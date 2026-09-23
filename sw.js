@@ -1,4 +1,4 @@
-const CACHE = "commute-dashboard-v2";
+const CACHE = "commute-dashboard-v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -31,6 +31,19 @@ self.addEventListener("fetch", event => {
     url.hostname.includes("open-meteo.com") ||
     url.hostname.includes("waze.com")
   ) {
+    return;
+  }
+
+  // Le pagine HTML/navigazioni devono essere network-first: evita che iPhone
+  // continui a mostrare una vecchia logica dei percorsi dopo un aggiornamento.
+  if (event.request.mode === "navigate" || url.pathname.endsWith(".html")) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        const copy = response.clone();
+        caches.open(CACHE).then(cache => cache.put(event.request, copy));
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
     return;
   }
 
