@@ -206,14 +206,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 37.15 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 37.16 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="37.15";
+const BUILD="37.16";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -229,8 +229,8 @@ const FIRENZE_SUD={lat:43.74225,lon:11.28054};
 
 const KEY_STORE="morning.tomtomApiKey.v30";
 const POS_STORE="morning.positions.v36";
-const DATA_STORE="morning.lastTraffic.v37";
-const BACK_DATA_STORE="morning.lastTrafficReturn.v1";
+const DATA_STORE="morning.lastTraffic.v38";
+const BACK_DATA_STORE="morning.lastTrafficReturn.v2";
 const REFRESH_MS=5*60*1000;
 let currentDirection="out";
 
@@ -389,97 +389,9 @@ function parseRoute(route){
  const closed=trafficSections.some(x=>String(x.simpleCategory||"").toUpperCase()==="ROAD_CLOSURE");
  return {current,delay:delayReal,noTraffic,ratio,motorway,closed};
 }
-function flattenCoords(coords,out=[]){
- if(!Array.isArray(coords))return out;
- if(coords.length>=2 && typeof coords[0]==="number" && typeof coords[1]==="number"){
-   out.push(coords);return out;
- }
- for(const c of coords)flattenCoords(c,out);
- return out;
-}
-function pointSegDistance(p,a,b){
- const x=p[0],y=p[1],x1=a[0],y1=a[1],x2=b[0],y2=b[1];
- const dx=x2-x1,dy=y2-y1;
- const den=dx*dx+dy*dy;
- const t=den?Math.max(0,Math.min(1,((x-x1)*dx+(y-y1)*dy)/den)):0;
- return Math.hypot(x-(x1+t*dx),y-(y1+t*dy));
-}
-function incidentNearA1(inc){
- const p=inc&&inc.properties?inc.properties:{};
- const roads=(Array.isArray(p.roadNumbers)?p.roadNumbers:[]).join(" ").toUpperCase();
- const names=((p.from||"")+" "+(p.to||"")+" "+(p.events||[]).map(e=>e&&e.description||"").join(" ")).toUpperCase();
- // Una chiusura vicina all'A1 NON basta: deve essere identificata esplicitamente
- // come A1/E35 (evita falsi positivi su strade locali parallele o sottostanti).
- const explicitRoad=/(^|[^A-Z0-9])A1([^A-Z0-9]|$)|(^|[^A-Z0-9])E35([^A-Z0-9]|$)/.test(" "+roads+" ");
- const explicitName=/(^|[^A-Z0-9])A1([^A-Z0-9]|$)|AUTOSTRADA\s+DEL\s+SOLE|(^|[^A-Z0-9])E35([^A-Z0-9]|$)/.test(" "+names+" ");
- return explicitRoad||explicitName;
-}
-function incidentDirection(inc){
- const p=inc&&inc.properties?inc.properties:{};
- const from=String(p.from||"").toLowerCase(),to=String(p.to||"").toLowerCase();
- const hasFirenze=x=>x.includes("firenze");
- const hasIncisa=x=>x.includes("incisa")||x.includes("reggello");
- if(hasFirenze(from)&&hasIncisa(to))return "back";
- if(hasIncisa(from)&&hasFirenze(to))return "out";
- const pts=flattenCoords(inc&&inc.geometry&&inc.geometry.coordinates||[]);
- if(pts.length>=2){
-   const dlat=Number(pts[pts.length-1][1])-Number(pts[0][1]);
-   if(Math.abs(dlat)>0.004)return dlat>0?"out":"back";
- }
- return "unknown";
-}
-async function liveA1Closure(direction){
- const key=getKey();
- if(!key)return {closed:false,checkedAt:Date.now()};
- const fields="{incidents{type,geometry{type,coordinates},properties{id,iconCategory,magnitudeOfDelay,events{description,code,iconCategory},startTime,endTime,from,to,length,roadNumbers,timeValidity}}}";
- const q=new URLSearchParams({
-   key,
-   bbox:"11.255,43.635,11.485,43.765",
-   fields,
-   language:"it-IT",
-   categoryFilter:"8",
-   timeValidityFilter:"present"
- });
- const url="https://api.tomtom.com/traffic/services/5/incidentDetails?"+q;
- try{
-   const r=await fetch(url,{cache:"no-store",mode:"cors"});
-   if(!r.ok)return {closed:false,checkedAt:Date.now(),unavailable:true};
-   const j=await r.json();
-   const all=Array.isArray(j.incidents)?j.incidents:[];
-   const matches=all.filter(inc=>{
-     const p=inc&&inc.properties?inc.properties:{};
-     const isClosed=Number(p.iconCategory)===8||(Array.isArray(p.events)&&p.events.some(e=>Number(e&&e.iconCategory)===8));
-     if(!isClosed||!incidentNearA1(inc))return false;
-     const d=incidentDirection(inc);
-     return d==="unknown"||d===direction;
-   });
-   if(!matches.length)return {closed:false,checkedAt:Date.now()};
-   const p=matches[0].properties||{};
-   return {
-     closed:true,
-     confirmedA1:true,
-     checkedAt:Date.now(),
-     from:p.from||"",
-     to:p.to||"",
-     startTime:p.startTime||"",
-     endTime:p.endTime||"",
-     description:(Array.isArray(p.events)&&p.events[0]&&p.events[0].description)||"Chiusura stradale"
-   };
- }catch(e){
-   return {closed:false,checkedAt:Date.now(),unavailable:true};
- }
-}
 function closureState(data){
- const age=Date.now()-(Number(data&&data.ts)||0);
- const fresh=age>=0&&age<=15*60*1000;
- if(!fresh)return {closed:false,detail:""};
- const ext=data&&data.closure;
- if(ext&&ext.closed&&ext.confirmedA1===true){
-   const between=ext.from&&ext.to?(" · "+ext.from+" → "+ext.to):"";
-   return {closed:true,detail:"⛔ A1 chiusa"+between};
- }
- if(data&&data.a1&&data.a1.closed)return {closed:true,detail:"⛔ Chiusura rilevata da TomTom sul percorso A1"};
- return {closed:false,detail:""};
+ const closed=!!(data&&data.a1&&data.a1.closed);
+ return {closed,detail:closed?"⛔ Chiusura segnalata da TomTom sul percorso A1":""};
 }
 function a1Level(x,closure){
  if(closure.closed)return {text:"CHIUSA",kind:"bad",icon:"⛔",closed:true};
@@ -554,11 +466,9 @@ async function refreshTraffic(){
 
  // Stessa logica stabile 37.11 in entrambe le direzioni:
  // fino a 5 alternative dirette per A1 + percorso diretto con autostrade escluse.
- const directionAtRequest=currentDirection;
- const [a1Options,normr,closure]=await Promise.all([
+ const [a1Options,normr]=await Promise.all([
    routes([start,end],{maxAlternatives:5}),
-   route([start,end],{avoidMotorways:true}),
-   liveA1Closure(directionAtRequest)
+   route([start,end],{avoidMotorways:true})
  ]);
  const motorwayOptions=a1Options
    .map(raw=>({raw,parsed:parseRoute(raw)}))
@@ -572,7 +482,7 @@ async function refreshTraffic(){
  const norm=parseRoute(normr);
  if(!a1||!a1.motorway)throw new Error("Percorso A1 non valido: TomTom non sta usando l'autostrada.");
  if(norm.motorway)throw new Error("Percorso normale non valido: TomTom ha inserito un tratto autostradale.");
- const data={a1,norm,closure,ts:Date.now()};
+ const data={a1,norm,ts:Date.now()};
  safeSet(activeStore(),JSON.stringify(data));
  renderTraffic(data,"live");
  ui.meta.textContent="Traffico live · aggiornato "+clock();
