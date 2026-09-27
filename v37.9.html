@@ -206,14 +206,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 37.14 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 37.15 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="37.14";
+const BUILD="37.15";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -457,6 +457,7 @@ async function liveA1Closure(direction){
    const p=matches[0].properties||{};
    return {
      closed:true,
+     confirmedA1:true,
      checkedAt:Date.now(),
      from:p.from||"",
      to:p.to||"",
@@ -473,7 +474,7 @@ function closureState(data){
  const fresh=age>=0&&age<=15*60*1000;
  if(!fresh)return {closed:false,detail:""};
  const ext=data&&data.closure;
- if(ext&&ext.closed){
+ if(ext&&ext.closed&&ext.confirmedA1===true){
    const between=ext.from&&ext.to?(" · "+ext.from+" → "+ext.to):"";
    return {closed:true,detail:"⛔ A1 chiusa"+between};
  }
