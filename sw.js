@@ -1,4 +1,4 @@
-const CACHE = "commute-dashboard-v37-17";
+const CACHE = "commute-dashboard-v37-18";
 const ASSETS = [
   "./",
   "./index.html",
