@@ -206,14 +206,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 37.17 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 37.18 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="37.17";
+const BUILD="37.18";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -471,6 +471,40 @@ function closureState(data){
   :"";
  return {closed,text,detail,incident};
 }
+function stabilizeTraffic(kind,x,previousData){
+ const prev=previousData&&previousData[kind]?previousData[kind]:null;
+ const prevTs=previousData?Number(previousData.ts)||0:0;
+ let effectiveDelay=Math.max(0,Number(x.delay)||0);
+ let base=Math.max(1,Number(x.noTraffic)||Math.max(1,x.current-effectiveDelay));
+
+ // Se TomTom azzera improvvisamente trafficDelay ma il tempo totale resta alto,
+ // usa il precedente tempo "senza traffico" come controllo di coerenza.
+ if(prev && prevTs && Date.now()-prevTs<=45*60*1000){
+  const prevBase=Math.max(1,Number(prev.noTraffic)||0);
+  if(prevBase>0){
+   const implied=Math.max(0,x.current-prevBase);
+   const previousWasCongested=(Number(prev.delay)||0)>=7 || (Number(prev.ratio)||1)>=1.20;
+   const stillSlow=x.current>=prevBase+7;
+   if((previousWasCongested&&stillSlow)||implied>=7){
+    effectiveDelay=Math.max(effectiveDelay,implied);
+    base=Math.min(base,prevBase);
+   }
+  }
+ }
+
+ // Salvaguardia specifica per questa tratta: 55/65+ minuti non devono mai
+ // diventare verdi solo perché un singolo refresh TomTom perde il delay.
+ if(kind==="a1"){
+  if(x.current>=65 && effectiveDelay<15) effectiveDelay=15;
+  else if(x.current>=55 && effectiveDelay<7) effectiveDelay=7;
+ }
+
+ if(effectiveDelay>x.delay || base<x.noTraffic){
+  const coherentBase=Math.max(1,Math.min(base,x.current-effectiveDelay));
+  return {...x,delay:effectiveDelay,noTraffic:coherentBase,ratio:x.current/coherentBase,stabilized:true};
+ }
+ return x;
+}
 function a1Level(x,closure){
  if(closure.closed)return {text:closure.text||"CHIUSA",kind:"bad",icon:"⛔",closed:true};
  if(!x.motorway)return {text:"NON PERCORRIBILE",kind:"bad",icon:"⛔",closed:true};
@@ -557,9 +591,17 @@ async function refreshTraffic(){
    const fallback=parseRoute(await route([start,info.fallback,end]));
    if(fallback.motorway)a1=fallback;
  }
- const norm=parseRoute(normr);
+ let norm=parseRoute(normr);
  if(!a1||!a1.motorway)throw new Error("Percorso A1 non valido: TomTom non sta usando l'autostrada.");
  if(norm.motorway)throw new Error("Percorso normale non valido: TomTom ha inserito un tratto autostradale.");
+
+ // Leggi il dato precedente PRIMA di sovrascriverlo: serve a evitare falsi
+ // passaggi a "SCORREVOLE" quando il tempo resta invariato ma TomTom perde il delay.
+ let previousData=null;
+ try{previousData=JSON.parse(safeGet(activeStore())||"null")}catch(e){}
+ a1=stabilizeTraffic("a1",a1,previousData);
+ norm=stabilizeTraffic("norm",norm,previousData);
+
  const incidents=await fetchA1Incidents();
  const a1Incident=relevantA1Incident(incidents);
  const data={a1,norm,a1Incident,ts:Date.now()};
