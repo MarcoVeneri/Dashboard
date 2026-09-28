@@ -232,6 +232,9 @@ const POS_STORE="morning.positions.v36";
 const DATA_STORE="morning.lastTraffic.v38";
 const BACK_DATA_STORE="morning.lastTrafficReturn.v2";
 const REFRESH_MS=5*60*1000;
+const SYNC_URL="https://nlhxjpartgvplythgzrz.supabase.co";
+const SYNC_KEY="sb_publishable_uA9EbSMwJ5oFraqP-r5njg_EXtLSjEH";
+const SYNC_TABLE="traffic_state";
 let currentDirection="out";
 
 const ui={
@@ -249,6 +252,46 @@ let busy=false,timer=null;
 function safeGet(k){try{return window.localStorage ? localStorage.getItem(k) : ""}catch(e){return ""}}
 function safeSet(k,v){try{if(window.localStorage)localStorage.setItem(k,v);return true}catch(e){return false}}
 function safeRemove(k){try{if(window.localStorage)localStorage.removeItem(k)}catch(e){}}
+
+function trafficSyncHeaders(prefer){
+ const h={"apikey":SYNC_KEY,"Content-Type":"application/json","x-client-info":"marco-traffic/shared"};
+ if(prefer)h["Prefer"]=prefer;
+ return h;
+}
+function trafficSyncEndpoint(suffix=""){
+ return SYNC_URL.replace(/\/$/,"")+"/rest/v1/"+SYNC_TABLE+suffix;
+}
+async function remoteTrafficLoad(direction){
+ const d=direction==="back"?"back":"out";
+ const r=await fetch(trafficSyncEndpoint("?direction=eq."+encodeURIComponent(d)+"&select=payload,source_ts,updated_at&limit=1"),{
+  headers:trafficSyncHeaders(),cache:"no-store"
+ });
+ if(!r.ok)throw new Error("traffic sync read "+r.status);
+ const rows=await r.json(),payload=rows&&rows[0]?rows[0].payload:null;
+ return payload&&payload.a1&&payload.norm?payload:null;
+}
+async function remoteTrafficSave(direction,data){
+ const d=direction==="back"?"back":"out";
+ const row={direction:d,payload:data,source_ts:Number(data&&data.ts)||Date.now(),updated_at:new Date().toISOString()};
+ const r=await fetch(trafficSyncEndpoint("?on_conflict=direction"),{
+  method:"POST",
+  headers:trafficSyncHeaders("resolution=merge-duplicates,return=minimal"),
+  body:JSON.stringify(row)
+ });
+ if(!r.ok)throw new Error("traffic sync write "+r.status);
+}
+async function loadRemoteLast(){
+ try{
+  const d=await remoteTrafficLoad(currentDirection);
+  if(d){
+   safeSet(activeStore(),JSON.stringify(d));
+   renderTraffic(d,"stale");
+   ui.meta.textContent="Dato condiviso · aggiornato "+clock(new Date(Number(d.ts)||Date.now()));
+   return true;
+  }
+ }catch(e){}
+ return false;
+}
 
 window.addEventListener("error",function(e){
   try{
@@ -594,7 +637,11 @@ function loadLast(){
  return false;
 }
 async function refreshTraffic(){
- if(!getKey()){if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");return false}
+ if(!getKey()){
+  if(await loadRemoteLast())return true;
+  if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");
+  return false;
+ }
  const p=await positions();
  const info=directionInfo();
  const start=p[info.startKey],end=p[info.endKey];
@@ -621,7 +668,10 @@ async function refreshTraffic(){
  // Leggi il dato precedente PRIMA di sovrascriverlo: serve a evitare falsi
  // passaggi a "SCORREVOLE" quando il tempo resta invariato ma TomTom perde il delay.
  let previousData=null;
- try{previousData=JSON.parse(safeGet(activeStore())||"null")}catch(e){}
+ try{previousData=await remoteTrafficLoad(currentDirection)}catch(e){}
+ if(!previousData){
+  try{previousData=JSON.parse(safeGet(activeStore())||"null")}catch(e){}
+ }
  a1=stabilizeTraffic("a1",a1,previousData);
  norm=stabilizeTraffic("norm",norm,previousData);
 
@@ -630,6 +680,7 @@ async function refreshTraffic(){
  const data={a1,norm,a1Incident,ts:Date.now()};
  data.view=trafficView(data);
  safeSet(activeStore(),JSON.stringify(data));
+ try{await remoteTrafficSave(currentDirection,data)}catch(e){console.warn("traffic sync",e)}
  renderTraffic(data,"live");
  ui.meta.textContent="Traffico live · aggiornato "+clock();
  return true;
@@ -689,8 +740,14 @@ try{
  }
 }catch(e){}
 
-greeting();setDirection("out",false);setInterval(greeting,60000);loadLast();refreshAll();timer=setInterval(refreshAll,REFRESH_MS);
-if(!getKey())setTimeout(openSettings,350);
+greeting();setDirection("out",false);setInterval(greeting,60000);
+(async()=>{
+ const remote=await loadRemoteLast();
+ if(!remote)loadLast();
+ await refreshAll();
+ if(!getKey()&&!remote)setTimeout(openSettings,350);
+})();
+timer=setInterval(refreshAll,REFRESH_MS);
 })();
 </script>
 </body>
