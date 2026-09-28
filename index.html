@@ -206,14 +206,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 37.19 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 37.20 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="37.19";
+const BUILD="37.20";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -280,13 +280,16 @@ async function remoteTrafficSave(direction,data){
  });
  if(!r.ok)throw new Error("traffic sync write "+r.status);
 }
-async function loadRemoteLast(){
+async function loadRemoteLast(direction=currentDirection,renderResult=true){
+ const dir=direction==="back"?"back":"out";
  try{
-  const d=await remoteTrafficLoad(currentDirection);
+  const d=await remoteTrafficLoad(dir);
   if(d){
-   safeSet(activeStore(),JSON.stringify(d));
-   renderTraffic(d,"stale");
-   ui.meta.textContent="Dato condiviso · aggiornato "+clock(new Date(Number(d.ts)||Date.now()));
+   safeSet(activeStore(dir),JSON.stringify(d));
+   if(renderResult && currentDirection===dir){
+    renderTraffic(d,"stale");
+    ui.meta.textContent="Dato condiviso · aggiornato "+clock(new Date(Number(d.ts)||Date.now()));
+   }
    return true;
   }
  }catch(e){}
@@ -322,9 +325,9 @@ function showError(msg=""){ui.error.textContent=msg;ui.error.classList.toggle("s
 function setStatus(el,text,kind){el.textContent=text;el.className="routeStatus "+kind}
 function setBar(el,pct,kind){el.style.width=Math.max(3,Math.min(100,pct))+"%";el.className="trafficFill "+(kind||"")}
 
-function activeStore(){return currentDirection==="back"?BACK_DATA_STORE:DATA_STORE}
-function directionInfo(){
- return currentDirection==="back"
+function activeStore(direction=currentDirection){return direction==="back"?BACK_DATA_STORE:DATA_STORE}
+function directionInfo(direction=currentDirection){
+ return direction==="back"
   ? {startKey:"work",endKey:"home",fallback:FIRENZE_SUD,label:"Firenze → Reggello",closure:"Firenze Sud → Incisa Reggello"}
   : {startKey:"home",endKey:"work",fallback:INCISA,label:"Reggello → Firenze · Via Panciatichi",closure:"Incisa Reggello → Firenze Sud"};
 }
@@ -622,28 +625,30 @@ function renderTraffic(data,state="live"){
    ui.a1Diff.textContent="Tempi equivalenti";ui.normalDiff.textContent="Tempi equivalenti";
  }
 }
-function loadLast(){
+function loadLast(direction=currentDirection,renderResult=true){
+ const dir=direction==="back"?"back":"out";
  try{
-  const d=JSON.parse(safeGet(activeStore())||"null");
+  const d=JSON.parse(safeGet(activeStore(dir))||"null");
   if(d&&d.a1&&d.norm){
    if(!d.view||d.view.schema!==1){
     d.view=trafficView(d);
-    safeSet(activeStore(),JSON.stringify(d));
+    safeSet(activeStore(dir),JSON.stringify(d));
    }
-   renderTraffic(d,"stale");
+   if(renderResult && currentDirection===dir)renderTraffic(d,"stale");
    return true;
   }
  }catch(e){}
  return false;
 }
-async function refreshTraffic(){
+async function refreshTraffic(direction=currentDirection,renderResult=true){
+ const dir=direction==="back"?"back":"out";
  if(!getKey()){
-  if(await loadRemoteLast())return true;
-  if(!loadLast())showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");
+  if(await loadRemoteLast(dir,renderResult))return true;
+  if(!loadLast(dir,renderResult) && renderResult)showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");
   return false;
  }
  const p=await positions();
- const info=directionInfo();
+ const info=directionInfo(dir);
  const start=p[info.startKey],end=p[info.endKey];
 
  // Stessa logica stabile 37.11 in entrambe le direzioni:
@@ -668,9 +673,9 @@ async function refreshTraffic(){
  // Leggi il dato precedente PRIMA di sovrascriverlo: serve a evitare falsi
  // passaggi a "SCORREVOLE" quando il tempo resta invariato ma TomTom perde il delay.
  let previousData=null;
- try{previousData=await remoteTrafficLoad(currentDirection)}catch(e){}
+ try{previousData=await remoteTrafficLoad(dir)}catch(e){}
  if(!previousData){
-  try{previousData=JSON.parse(safeGet(activeStore())||"null")}catch(e){}
+  try{previousData=JSON.parse(safeGet(activeStore(dir))||"null")}catch(e){}
  }
  a1=stabilizeTraffic("a1",a1,previousData);
  norm=stabilizeTraffic("norm",norm,previousData);
@@ -679,10 +684,12 @@ async function refreshTraffic(){
  const a1Incident=relevantA1Incident(incidents);
  const data={a1,norm,a1Incident,ts:Date.now()};
  data.view=trafficView(data);
- safeSet(activeStore(),JSON.stringify(data));
- try{await remoteTrafficSave(currentDirection,data)}catch(e){console.warn("traffic sync",e)}
- renderTraffic(data,"live");
- ui.meta.textContent="Traffico live · aggiornato "+clock();
+ safeSet(activeStore(dir),JSON.stringify(data));
+ try{await remoteTrafficSave(dir,data)}catch(e){console.warn("traffic sync "+dir,e)}
+ if(renderResult && currentDirection===dir){
+  renderTraffic(data,"live");
+  ui.meta.textContent="Traffico live · aggiornato "+clock();
+ }
  return true;
 }
 
@@ -690,11 +697,21 @@ async function refreshAll(){
  if(busy)return false;
  busy=true;ui.refresh.textContent="…";ui.refresh.disabled=true;showError("");
  let ok=false,errorMessage="";
+ const displayDirection=currentDirection;
+ const otherDirection=displayDirection==="out"?"back":"out";
  try{
-   ok=await refreshTraffic();
+   // Aggiorna prima la direzione visibile, poi anche l'altra senza cambiare la schermata.
+   // In questo modo Supabase mantiene sempre freschi sia "out" sia "back" e Marco Hub
+   // resta un lettore puro dei dati prodotti dalla PWA Traffico.
+   ok=await refreshTraffic(displayDirection,true);
+   try{
+    await refreshTraffic(otherDirection,false);
+   }catch(otherError){
+    console.warn("traffic background sync "+otherDirection,otherError);
+   }
  }catch(e){
    errorMessage=e&&e.message?e.message:"Traffico non disponibile";
-   const cached=loadLast();
+   const cached=loadLast(displayDirection,true);
    ui.meta.textContent=cached?"Ultimo dato disponibile · nuovo tentativo automatico":"Traffico temporaneamente non disponibile";
    if(!cached){
      const serverError=/TomTom Routing (429|5\d\d)/.test(errorMessage);
