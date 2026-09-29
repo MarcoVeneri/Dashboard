@@ -206,14 +206,14 @@ input{width:100%;height:47px;border-radius:14px;border:1px solid var(--line);bac
     <input id="tomtomKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Incolla la chiave">
     <button class="save" type="submit">Salva e verifica</button>
     <div id="sheetMsg" class="sheetMsg"></div>
-    <div class="version">Mattino Traffico · versione 37.20 · iPhone-safe · single-file JS/CSS</div>
+    <div class="version">Mattino Traffico · versione 37.21 · iPhone-safe · single-file JS/CSS</div>
   </form>
 </div>
 
 <script>
 (()=>{
 "use strict";
-const BUILD="37.20";
+const BUILD="37.21";
 const $=s=>document.querySelector(s);
 const HOME_ADDR="Via J. F. Kennedy 9, Reggello, Firenze, Italia";
 const WORK_ADDR="Via Panciatichi 17, Firenze, Italia";
@@ -518,28 +518,12 @@ function closureState(data){
  return {closed,text,detail,incident};
 }
 function stabilizeTraffic(kind,x,previousData){
- const prev=previousData&&previousData[kind]?previousData[kind]:null;
- const prevTs=previousData?Number(previousData.ts)||0:0;
  let effectiveDelay=Math.max(0,Number(x.delay)||0);
  let base=Math.max(1,Number(x.noTraffic)||Math.max(1,x.current-effectiveDelay));
 
- // Se TomTom azzera improvvisamente trafficDelay ma il tempo totale resta alto,
- // usa il precedente tempo "senza traffico" come controllo di coerenza.
- if(prev && prevTs && Date.now()-prevTs<=45*60*1000){
-  const prevBase=Math.max(1,Number(prev.noTraffic)||0);
-  if(prevBase>0){
-   const implied=Math.max(0,x.current-prevBase);
-   const previousWasCongested=(Number(prev.delay)||0)>=7 || (Number(prev.ratio)||1)>=1.20;
-   const stillSlow=x.current>=prevBase+7;
-   if((previousWasCongested&&stillSlow)||implied>=7){
-    effectiveDelay=Math.max(effectiveDelay,implied);
-    base=Math.min(base,prevBase);
-   }
-  }
- }
-
- // Salvaguardia specifica per questa tratta: 55/65+ minuti non devono mai
- // diventare verdi solo perché un singolo refresh TomTom perde il delay.
+ // Non trascinare vecchi rallentamenti sui tempi normali: sotto 55 minuti
+ // vale sempre il dato TomTom corrente. Evita 51 min "rallentata" su un device
+ // e 51 min "scorrevole" su un altro per colpa dello storico locale.
  if(kind==="a1"){
   if(x.current>=65 && effectiveDelay<15) effectiveDelay=15;
   else if(x.current>=55 && effectiveDelay<7) effectiveDelay=7;
@@ -554,9 +538,11 @@ function stabilizeTraffic(kind,x,previousData){
 function a1Level(x,closure){
  if(closure.closed)return {text:closure.text||"CHIUSA",kind:"bad",icon:"⛔",closed:true};
  if(!x.motorway)return {text:"NON PERCORRIBILE",kind:"bad",icon:"⛔",closed:true};
- if(x.delay>=30||x.ratio>=1.65)return {text:"MOLTO RALLENTATA",kind:"bad",icon:"🔴"};
- if(x.delay>=15||x.ratio>=1.40)return {text:"CODA PESANTE",kind:"bad",icon:"🔴"};
- if(x.delay>=7||x.ratio>=1.20)return {text:"RALLENTATA",kind:"warn",icon:"🟠"};
+ // Criterio unico e leggibile per questa tratta, identico in entrambe le direzioni.
+ // 51 min deve avere lo stesso stato sia in andata sia in ritorno.
+ if(x.current>=75)return {text:"MOLTO RALLENTATA",kind:"bad",icon:"🔴"};
+ if(x.current>=65)return {text:"CODA PESANTE",kind:"bad",icon:"🔴"};
+ if(x.current>=55)return {text:"RALLENTATA",kind:"warn",icon:"🟠"};
  return {text:"SCORREVOLE",kind:"ok",icon:"🟢"};
 }
 function normalLevel(x){
@@ -640,8 +626,26 @@ function loadLast(direction=currentDirection,renderResult=true){
  }catch(e){}
  return false;
 }
-async function refreshTraffic(direction=currentDirection,renderResult=true){
+async function refreshTraffic(direction=currentDirection,renderResult=true,forceLive=false){
  const dir=direction==="back"?"back":"out";
+
+ // Supabase è la fonte condivisa: se il dato online è ancora fresco, tutti i
+ // dispositivi leggono ESATTAMENTE lo stesso payload invece di ricalcolare in parallelo.
+ if(!forceLive){
+  try{
+   const shared=await remoteTrafficLoad(dir);
+   const age=shared?Date.now()-(Number(shared.ts)||0):Infinity;
+   if(shared && age>=0 && age<REFRESH_MS){
+    safeSet(activeStore(dir),JSON.stringify(shared));
+    if(renderResult && currentDirection===dir){
+     renderTraffic(shared,"live");
+     ui.meta.textContent="Dato condiviso · aggiornato "+clock(new Date(Number(shared.ts)||Date.now()));
+    }
+    return true;
+   }
+  }catch(e){}
+ }
+
  if(!getKey()){
   if(await loadRemoteLast(dir,renderResult))return true;
   if(!loadLast(dir,renderResult) && renderResult)showError("Inserisci la chiave TomTom da ⚙︎ per attivare il traffico.");
@@ -693,7 +697,7 @@ async function refreshTraffic(direction=currentDirection,renderResult=true){
  return true;
 }
 
-async function refreshAll(){
+async function refreshAll(forceLive=false){
  if(busy)return false;
  busy=true;ui.refresh.textContent="…";ui.refresh.disabled=true;showError("");
  let ok=false,errorMessage="";
@@ -703,9 +707,9 @@ async function refreshAll(){
    // Aggiorna prima la direzione visibile, poi anche l'altra senza cambiare la schermata.
    // In questo modo Supabase mantiene sempre freschi sia "out" sia "back" e Marco Hub
    // resta un lettore puro dei dati prodotti dalla PWA Traffico.
-   ok=await refreshTraffic(displayDirection,true);
+   ok=await refreshTraffic(displayDirection,true,forceLive);
    try{
-    await refreshTraffic(otherDirection,false);
+    await refreshTraffic(otherDirection,false,forceLive);
    }catch(otherError){
     console.warn("traffic background sync "+otherDirection,otherError);
    }
@@ -734,12 +738,12 @@ function closeSettings(){
 ui.settings.addEventListener("click",openSettings);ui.close.addEventListener("click",closeSettings);
 ui.dirOut.addEventListener("click",()=>setDirection("out"));
 ui.dirBack.addEventListener("click",()=>setDirection("back"));
-ui.refresh.addEventListener("click",refreshAll);
+ui.refresh.addEventListener("click",()=>refreshAll(true));
 ui.form.addEventListener("submit",async e=>{
  e.preventDefault();const k=ui.key.value.trim();
  if(!k){ui.sheetMsg.textContent="Inserisci la chiave TomTom.";return}
  safeSet(KEY_STORE,k);safeRemove(POS_STORE);ui.sheetMsg.textContent="Salvata. Verifico…";
- try{await refreshAll();ui.sheetMsg.textContent="Chiave salvata.";setTimeout(closeSettings,450)}
+ try{await refreshAll(true);ui.sheetMsg.textContent="Chiave salvata.";setTimeout(closeSettings,450)}
  catch(e){ui.sheetMsg.textContent=e.message||"Verifica non riuscita"}
 });
 ui.dialog.addEventListener("click",function(e){if(e.target===ui.dialog)closeSettings();});
