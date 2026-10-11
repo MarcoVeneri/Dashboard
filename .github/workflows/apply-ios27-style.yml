@@ -1,0 +1,38 @@
+name: Apply Traffic iOS 27 style
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-ios27-style.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<meta name="apple-mobile-web-app-title" content="Mattino">','<meta name="apple-mobile-web-app-title" content="Traffico">')
+          s=s.replace('<title>Mattino · Traffico</title>','<title>Traffico</title>')
+          link='<link rel="stylesheet" href="./ios27.css?v=1">'
+          if link not in s:
+              s=s.replace('</head>',link+'\n</head>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit patch
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Apply iOS 27 visual style to Traffic"
+          git push
