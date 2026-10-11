@@ -1,237 +1,396 @@
-/* Dashboard Traffico · iOS 27 inspired visual layer
-   Solo grafica: non modifica la logica di traffico, direzioni, meteo o Waze. */
+/* Traffico · route-first iOS 27 inspired redesign
+   Solo presentazione: tutti gli ID e la logica esistenti restano invariati. */
 :root{
-  --ios-bg:#edf4fb;
-  --ios-bg2:#dce9f6;
-  --ios-glass:rgba(255,255,255,.68);
-  --ios-glass-strong:rgba(250,253,255,.86);
-  --ios-border:rgba(255,255,255,.76);
-  --ios-hair:rgba(52,83,116,.12);
-  --ios-text:#17263a;
-  --ios-muted:#68798c;
-  --ios-blue:#4b98ee;
-  --ios-blue2:#7fb9ed;
-  --ios-green:#45b77a;
-  --ios-red:#df5c64;
-  --ios-amber:#dfa34d;
-  --ios-shadow:0 18px 46px rgba(52,79,108,.13);
-  --ios-shadow-soft:0 9px 24px rgba(52,79,108,.10);
+  --t-bg:#eaf3fb;
+  --t-bg2:#dce9f6;
+  --t-text:#152338;
+  --t-muted:#6b7c90;
+  --t-blue:#4a98e8;
+  --t-blue-deep:#337dca;
+  --t-green:#47b77c;
+  --t-red:#df646c;
+  --t-amber:#dfa44f;
+  --t-glass:rgba(255,255,255,.67);
+  --t-glass-strong:rgba(252,254,255,.88);
+  --t-line:rgba(52,82,114,.11);
+  --t-edge:rgba(255,255,255,.74);
+  --t-shadow:0 18px 48px rgba(47,76,108,.12);
+  --t-shadow-soft:0 8px 24px rgba(47,76,108,.09);
 }
 
 html,body{
+  color:var(--t-text)!important;
   background:
-    radial-gradient(circle at 14% 3%,rgba(111,174,231,.22),transparent 28%),
-    radial-gradient(circle at 88% 10%,rgba(190,217,241,.28),transparent 30%),
-    linear-gradient(155deg,var(--ios-bg),var(--ios-bg2))!important;
-  color:var(--ios-text)!important;
+    radial-gradient(circle at 12% 0%,rgba(99,168,231,.20),transparent 31%),
+    radial-gradient(circle at 92% 9%,rgba(200,221,240,.34),transparent 30%),
+    linear-gradient(160deg,var(--t-bg),var(--t-bg2))!important;
 }
 body{padding:0!important}
 .app{
-  width:min(100%,940px)!important;
+  width:min(100%,820px)!important;
   margin:0 auto!important;
-  padding:max(16px,env(safe-area-inset-top)) 14px max(22px,env(safe-area-inset-bottom))!important;
+  padding:max(18px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))!important;
 }
 
+/* Header: niente quadratone, titolo libero come iOS */
 .header{
-  margin:0 0 14px!important;
-  padding:14px 16px!important;
-  border-radius:26px!important;
-  background:var(--ios-glass)!important;
-  border:1px solid var(--ios-border)!important;
-  box-shadow:var(--ios-shadow-soft)!important;
-  backdrop-filter:blur(28px) saturate(155%)!important;
-  -webkit-backdrop-filter:blur(28px) saturate(155%)!important;
+  margin:0 0 16px!important;
+  padding:4px 2px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  align-items:center!important;
 }
-.eyebrow,.meta{color:var(--ios-muted)!important}
-.eyebrow{font-size:12px!important;font-weight:700!important}
+.eyebrow{
+  color:var(--t-muted)!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  letter-spacing:-.01em!important;
+}
 h1{
-  color:var(--ios-text)!important;
-  font-size:clamp(34px,5vw,48px)!important;
-  line-height:.98!important;
+  color:var(--t-text)!important;
+  font-size:clamp(38px,6vw,54px)!important;
+  line-height:.94!important;
   margin:5px 0 7px!important;
-  font-weight:790!important;
-  letter-spacing:-.05em!important;
+  font-weight:820!important;
+  letter-spacing:-.058em!important;
 }
+.meta{color:var(--t-muted)!important;font-size:11px!important}
+.actions{gap:8px!important}
 .circle{
   width:46px!important;height:46px!important;
   border-radius:50%!important;
-  color:var(--ios-text)!important;
-  background:rgba(255,255,255,.62)!important;
+  color:var(--t-text)!important;
+  background:rgba(255,255,255,.58)!important;
   border:1px solid rgba(255,255,255,.78)!important;
-  box-shadow:0 8px 20px rgba(45,72,102,.10),inset 0 1px 0 rgba(255,255,255,.72)!important;
-  backdrop-filter:blur(22px) saturate(150%)!important;
-  -webkit-backdrop-filter:blur(22px) saturate(150%)!important;
+  box-shadow:0 8px 22px rgba(48,78,108,.10),inset 0 1px 0 rgba(255,255,255,.78)!important;
+  backdrop-filter:blur(24px) saturate(160%)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(160%)!important;
 }
 
+/* Segmentato ampio, stile iOS */
 .directionSwitch{
-  margin:0 0 12px!important;
-  padding:5px!important;
-  border-radius:20px!important;
-  background:rgba(255,255,255,.52)!important;
+  margin:0 0 14px!important;
+  padding:4px!important;
+  border-radius:22px!important;
+  background:rgba(255,255,255,.50)!important;
   border:1px solid rgba(255,255,255,.72)!important;
-  box-shadow:var(--ios-shadow-soft)!important;
-  backdrop-filter:blur(28px) saturate(160%)!important;
-  -webkit-backdrop-filter:blur(28px) saturate(160%)!important;
+  box-shadow:var(--t-shadow-soft)!important;
+  backdrop-filter:blur(28px) saturate(165%)!important;
+  -webkit-backdrop-filter:blur(28px) saturate(165%)!important;
 }
 .directionBtn{
-  min-height:44px!important;
-  border-radius:15px!important;
-  color:var(--ios-muted)!important;
+  min-height:48px!important;
+  border-radius:18px!important;
+  color:var(--t-muted)!important;
   font-size:12px!important;
-  font-weight:760!important;
+  font-weight:780!important;
 }
 .directionBtn.active{
-  background:rgba(255,255,255,.86)!important;
-  color:var(--ios-text)!important;
-  box-shadow:0 5px 16px rgba(52,79,108,.11),inset 0 1px 0 rgba(255,255,255,.9)!important;
+  background:rgba(255,255,255,.90)!important;
+  color:var(--t-text)!important;
+  box-shadow:0 6px 18px rgba(48,78,108,.11),inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+.error{border-radius:18px!important}
+
+/* Scelta consigliata = elemento dominante, non una delle tante card */
+.decision{
+  position:relative!important;
+  margin:0 0 14px!important;
+  min-height:176px!important;
+  padding:22px!important;
+  border-radius:34px!important;
+  overflow:hidden!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.34)!important;
+  box-shadow:0 22px 54px rgba(47,76,108,.17)!important;
+}
+.decision:before{
+  content:"";
+  position:absolute;
+  width:240px;height:240px;border-radius:50%;
+  right:-70px;top:-110px;
+  background:radial-gradient(circle,rgba(255,255,255,.20),rgba(255,255,255,0) 68%);
+  pointer-events:none;
+}
+.decision:after{
+  content:""!important;
+  position:absolute!important;
+  left:0;right:0;bottom:0!important;top:auto!important;
+  width:auto!important;height:44%!important;border-radius:0!important;
+  background:linear-gradient(180deg,transparent,rgba(9,20,31,.13))!important;
+  pointer-events:none!important;
+}
+.decision.a1{background:linear-gradient(145deg,#56bd85,#2e9a65)!important}
+.decision.noa1{background:linear-gradient(145deg,#ec747b,#c64f57)!important}
+.decision.tie,.decision.loading{background:linear-gradient(145deg,#718094,#566475)!important}
+.decisionTop{
+  position:relative!important;z-index:2!important;
+  display:grid!important;
+  grid-template-columns:64px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:14px!important;
+}
+.decisionIcon{
+  width:64px!important;height:64px!important;
+  border-radius:22px!important;
+  background:rgba(255,255,255,.17)!important;
+  border:1px solid rgba(255,255,255,.20)!important;
+  display:grid!important;place-items:center!important;
+  font-size:31px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16)!important;
+}
+.decisionKicker{font-size:10px!important;letter-spacing:.12em!important;font-weight:850!important}
+.decisionTitle{
+  font-size:clamp(34px,8vw,50px)!important;
+  line-height:.92!important;
+  font-weight:900!important;
+  letter-spacing:-.055em!important;
+  margin-top:3px!important;
+}
+.decisionSub{font-size:13px!important;line-height:1.35!important;margin-top:8px!important;max-width:560px!important}
+.live{
+  align-self:start!important;
+  margin-left:0!important;
+  padding:7px 10px!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.17)!important;
+  border:1px solid rgba(255,255,255,.17)!important;
+  font-size:9px!important;
+  letter-spacing:.08em!important;
 }
 
+/* Il confronto è un unico pannello continuo: spariscono i due quadratoni */
+.routes{
+  display:block!important;
+  overflow:hidden!important;
+  border-radius:30px!important;
+  background:var(--t-glass)!important;
+  border:1px solid var(--t-edge)!important;
+  box-shadow:var(--t-shadow)!important;
+  backdrop-filter:blur(30px) saturate(160%)!important;
+  -webkit-backdrop-filter:blur(30px) saturate(160%)!important;
+}
+.route{
+  position:relative!important;
+  min-height:0!important;
+  padding:20px 20px 18px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  outline:none!important;
+}
+.route + .route{border-top:1px solid var(--t-line)!important}
+.route.recommended{
+  background:linear-gradient(90deg,rgba(71,183,124,.08),transparent 55%)!important;
+  box-shadow:inset 4px 0 0 rgba(71,183,124,.70)!important;
+}
+.routeName{
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+  color:var(--t-muted)!important;
+  font-size:11px!important;
+  font-weight:850!important;
+  letter-spacing:.09em!important;
+}
+.routeName:before{
+  content:"";
+  width:30px;height:30px;border-radius:10px;
+  display:inline-grid;place-items:center;
+  flex:0 0 auto;
+  font-size:11px;font-weight:900;letter-spacing:-.03em;
+}
+#a1Card .routeName:before{
+  content:"A1";
+  background:linear-gradient(145deg,#5ea9ef,#347fc9);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.58);
+  box-shadow:0 6px 14px rgba(52,127,201,.16);
+}
+#normalCard .routeName:before{
+  content:"≋";
+  background:rgba(100,120,140,.10);
+  color:var(--t-muted);
+  border:1px solid var(--t-line);
+  font-size:18px;
+}
+.routeMain{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:end!important;
+  gap:16px!important;
+  margin-top:12px!important;
+}
+.routeMain>div:first-child{display:flex!important;align-items:flex-end!important;min-width:0!important}
+.routeTime{
+  color:var(--t-text)!important;
+  font-size:clamp(58px,15vw,84px)!important;
+  line-height:.82!important;
+  font-weight:900!important;
+  letter-spacing:-.075em!important;
+  margin:0!important;
+}
+.routeUnit{
+  color:var(--t-muted)!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  margin:0 0 7px 5px!important;
+}
+.routeEta{
+  color:var(--t-text)!important;
+  font-size:clamp(27px,7vw,38px)!important;
+  line-height:.92!important;
+  font-weight:850!important;
+  letter-spacing:-.05em!important;
+  text-align:right!important;
+  white-space:nowrap!important;
+}
+.routeEta span{
+  display:block!important;
+  color:var(--t-muted)!important;
+  font-size:9px!important;
+  line-height:1!important;
+  margin:0 0 5px!important;
+  letter-spacing:.11em!important;
+}
+.routeStatus{
+  display:inline-flex!important;
+  margin-top:14px!important;
+  padding:7px 10px!important;
+  border-radius:999px!important;
+  font-size:10px!important;
+  font-weight:850!important;
+  letter-spacing:.035em!important;
+  box-shadow:none!important;
+}
+.routeStatus.ok{background:rgba(71,183,124,.13)!important;color:#23885a!important}
+.routeStatus.warn{background:rgba(223,164,79,.15)!important;color:#a96f1d!important}
+.routeStatus.bad{background:rgba(223,100,108,.13)!important;color:#b9474f!important}
+.routeStatus.neutral,.neutral{background:rgba(106,124,144,.10)!important;color:var(--t-muted)!important}
+.routeDetail{
+  color:var(--t-muted)!important;
+  font-size:11px!important;
+  line-height:1.35!important;
+  min-height:0!important;
+  margin-top:9px!important;
+}
+.trafficBar{
+  height:5px!important;
+  margin-top:11px!important;
+  border-radius:999px!important;
+  background:rgba(91,112,134,.10)!important;
+}
+.diff{margin-top:8px!important;font-size:12px!important;font-weight:800!important}
+
+/* Elementi legacy se presenti */
 .weather{gap:10px!important;margin-bottom:12px!important}
 .weatherCard{
+  background:rgba(255,255,255,.52)!important;
+  border:1px solid var(--t-edge)!important;
   border-radius:22px!important;
-  padding:12px 14px!important;
-  background:var(--ios-glass)!important;
-  border:1px solid var(--ios-border)!important;
-  box-shadow:var(--ios-shadow-soft)!important;
-  backdrop-filter:blur(28px) saturate(155%)!important;
-  -webkit-backdrop-filter:blur(28px) saturate(155%)!important;
+  box-shadow:var(--t-shadow-soft)!important;
+  backdrop-filter:blur(24px) saturate(150%)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(150%)!important;
 }
-.weatherName{color:var(--ios-muted)!important}
-.weatherValue{font-size:27px!important;color:var(--ios-text)!important}
-.weatherIcon{font-size:28px!important}
-
-.decision{
-  margin:0 0 12px!important;
-  padding:17px!important;
-  border-radius:28px!important;
-  border:1px solid rgba(255,255,255,.40)!important;
-  box-shadow:var(--ios-shadow)!important;
-  backdrop-filter:blur(28px) saturate(150%)!important;
-  -webkit-backdrop-filter:blur(28px) saturate(150%)!important;
-}
-.decision.a1{background:linear-gradient(145deg,#55bd84,#319e68)!important}
-.decision.noa1{background:linear-gradient(145deg,#e86d73,#c64d55)!important}
-.decision.tie,.decision.loading{background:linear-gradient(145deg,#768494,#596675)!important}
-.decisionIcon{
-  width:52px!important;height:52px!important;border-radius:17px!important;
-  background:rgba(255,255,255,.18)!important;
-  border:1px solid rgba(255,255,255,.18)!important;
-}
-.decisionKicker{font-size:9px!important;letter-spacing:.11em!important}
-.decisionTitle{font-size:30px!important;font-weight:850!important}
-.decisionSub{font-size:12px!important;line-height:1.3!important}
-.live{
-  background:rgba(255,255,255,.18)!important;
-  border:1px solid rgba(255,255,255,.16)!important;
-  padding:6px 9px!important;
-}
-
-.routes{gap:10px!important}
-.route{
-  min-height:0!important;
-  padding:16px!important;
-  border-radius:25px!important;
-  background:var(--ios-glass)!important;
-  border:1px solid var(--ios-border)!important;
-  box-shadow:var(--ios-shadow-soft)!important;
-  backdrop-filter:blur(28px) saturate(155%)!important;
-  -webkit-backdrop-filter:blur(28px) saturate(155%)!important;
-}
-.route.recommended{
-  outline:none!important;
-  border-color:rgba(69,183,122,.50)!important;
-  box-shadow:0 13px 30px rgba(48,147,100,.13),inset 0 0 0 1px rgba(69,183,122,.15)!important;
-}
-.routeName{color:var(--ios-muted)!important;font-size:11px!important;letter-spacing:.08em!important}
-.routeMain{margin-top:8px!important;gap:18px!important;align-items:flex-end!important}
-.routeTime,.routeEta{
-  color:var(--ios-text)!important;
-  font-size:clamp(44px,11vw,60px)!important;
-  line-height:.9!important;
-  font-weight:850!important;
-  letter-spacing:-.06em!important;
-}
-.routeEta span{color:var(--ios-muted)!important;font-size:10px!important}
-.routeUnit{color:var(--ios-muted)!important}
-.routeDetail{color:var(--ios-muted)!important;min-height:0!important;margin-top:8px!important}
-.routeStatus{font-size:11px!important;padding:7px 10px!important;margin-top:10px!important;box-shadow:none!important}
-.routeStatus.ok{background:rgba(69,183,122,.14)!important;color:#23885a!important}
-.routeStatus.warn{background:rgba(223,163,77,.16)!important;color:#aa6f19!important}
-.routeStatus.bad{background:rgba(223,92,100,.14)!important;color:#b84249!important}
-.routeStatus.neutral,.neutral{background:rgba(104,121,140,.10)!important;color:var(--ios-muted)!important}
-.trafficBar{height:6px!important;margin-top:10px!important;background:rgba(88,109,132,.11)!important}
-.diff{font-size:12px!important}
-
+.weatherName,.note{color:var(--t-muted)!important}
+.weatherValue{color:var(--t-text)!important}
 .waze{
-  min-height:52px!important;
-  border-radius:18px!important;
-  margin-top:10px!important;
-  background:linear-gradient(145deg,#5aa7ef,#3f86ce)!important;
-  box-shadow:0 11px 27px rgba(63,134,206,.20)!important;
+  min-height:54px!important;
+  border-radius:20px!important;
+  background:linear-gradient(145deg,#5ba8ef,#3e87cf)!important;
+  box-shadow:0 12px 28px rgba(62,135,207,.20)!important;
 }
-.note{color:var(--ios-muted)!important}
 
+/* Sheet */
+.modal{background:rgba(17,27,39,.25)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important}
 .sheet{
   background:rgba(250,253,255,.94)!important;
-  border:1px solid rgba(255,255,255,.80)!important;
-  border-radius:28px!important;
-  backdrop-filter:blur(34px) saturate(160%)!important;
-  -webkit-backdrop-filter:blur(34px) saturate(160%)!important;
+  border:1px solid rgba(255,255,255,.82)!important;
+  border-radius:30px!important;
+  box-shadow:0 30px 80px rgba(29,47,68,.24)!important;
+  backdrop-filter:blur(34px) saturate(165%)!important;
+  -webkit-backdrop-filter:blur(34px) saturate(165%)!important;
 }
-input{background:rgba(238,245,251,.86)!important;color:var(--ios-text)!important;border-color:var(--ios-hair)!important}
-.save{background:#24364a!important;color:#fff!important}
-
-@media(min-width:760px){
-  .app{padding:22px!important}
-  .routes{grid-template-columns:1fr 1fr!important}
-  .route{padding:20px!important}
-  .decision{padding:20px!important}
-}
+.sheetTitle{color:var(--t-text)!important}
+.sheet p,.sheetMsg,.version{color:var(--t-muted)!important}
+input{background:rgba(236,244,251,.88)!important;color:var(--t-text)!important;border-color:var(--t-line)!important}
+.save{background:#24364a!important;color:#fff!important;border-radius:16px!important}
 
 @media(max-width:759px){
-  .app{padding:max(12px,env(safe-area-inset-top)) 8px max(14px,env(safe-area-inset-bottom))!important}
-  .header{padding:12px 12px!important;border-radius:23px!important;margin-bottom:9px!important}
-  h1{font-size:34px!important}
-  .actions{gap:6px!important}
-  .circle{width:43px!important;height:43px!important}
-  .directionSwitch{margin-bottom:9px!important;border-radius:18px!important}
-  .directionBtn{min-height:41px!important;font-size:11px!important}
-  .decision{padding:14px!important;border-radius:23px!important;margin-bottom:9px!important}
-  .decisionIcon{width:46px!important;height:46px!important;border-radius:15px!important;font-size:23px!important}
-  .decisionTitle{font-size:27px!important}
-  .decisionSub{font-size:11px!important}
-  .route{padding:13px!important;border-radius:21px!important}
-  .routeMain{gap:12px!important;margin-top:7px!important}
-  .routeTime,.routeEta{font-size:42px!important}
-  .routeStatus{margin-top:8px!important}
-  .routeDetail{font-size:10px!important}
-  .waze{min-height:48px!important;border-radius:16px!important}
+  .app{padding:max(13px,env(safe-area-inset-top)) 10px max(16px,env(safe-area-inset-bottom))!important}
+  .header{margin-bottom:12px!important}
+  h1{font-size:39px!important}
+  .circle{width:44px!important;height:44px!important}
+  .directionSwitch{margin-bottom:10px!important;border-radius:20px!important}
+  .directionBtn{min-height:44px!important;font-size:11px!important;padding:0 6px!important}
+  .decision{min-height:156px!important;padding:17px!important;border-radius:28px!important;margin-bottom:10px!important}
+  .decisionTop{grid-template-columns:54px minmax(0,1fr)!important;gap:11px!important}
+  .decisionIcon{width:54px!important;height:54px!important;border-radius:18px!important;font-size:27px!important}
+  .live{position:absolute!important;right:0!important;top:0!important}
+  .decisionKicker{font-size:9px!important}
+  .decisionTitle{font-size:34px!important;max-width:240px!important}
+  .decisionSub{font-size:11px!important;max-width:285px!important}
+  .routes{border-radius:26px!important}
+  .route{padding:17px 16px 15px!important}
+  .routeMain{gap:10px!important;margin-top:11px!important}
+  .routeTime{font-size:61px!important}
+  .routeEta{font-size:29px!important}
+  .routeStatus{margin-top:11px!important}
+  .routeDetail{font-size:10px!important;margin-top:7px!important}
+  .trafficBar{margin-top:9px!important}
+}
+
+@media(max-width:380px){
+  .routeTime{font-size:55px!important}
+  .routeEta{font-size:26px!important}
+  .decisionTitle{font-size:31px!important}
+  .directionBtn{font-size:10px!important}
+}
+
+@media(min-width:760px){
+  .app{padding:24px!important}
+  .decision{min-height:186px!important;padding:25px!important}
+  .routes{max-width:100%!important}
+  .route{padding:24px!important}
+  .routeTime{font-size:82px!important}
+  .routeEta{font-size:38px!important}
 }
 
 @media(prefers-color-scheme:dark){
   :root{
-    --ios-bg:#191e24;
-    --ios-bg2:#252c34;
-    --ios-glass:rgba(37,44,52,.76);
-    --ios-glass-strong:rgba(42,49,58,.92);
-    --ios-border:rgba(255,255,255,.09);
-    --ios-hair:rgba(255,255,255,.08);
-    --ios-text:#f2f5f8;
-    --ios-muted:#a8b1bb;
-    --ios-shadow:0 18px 46px rgba(0,0,0,.28);
-    --ios-shadow-soft:0 9px 24px rgba(0,0,0,.18);
+    --t-bg:#191e24;
+    --t-bg2:#252c34;
+    --t-text:#f2f5f8;
+    --t-muted:#a8b1bb;
+    --t-glass:rgba(36,43,51,.78);
+    --t-glass-strong:rgba(42,49,58,.92);
+    --t-line:rgba(255,255,255,.08);
+    --t-edge:rgba(255,255,255,.09);
+    --t-shadow:0 18px 48px rgba(0,0,0,.30);
+    --t-shadow-soft:0 8px 24px rgba(0,0,0,.19);
   }
   html,body{
     background:
-      radial-gradient(circle at 15% 2%,rgba(76,126,174,.18),transparent 30%),
-      radial-gradient(circle at 90% 8%,rgba(94,111,128,.13),transparent 28%),
-      linear-gradient(155deg,#191e24,#252c34)!important;
+      radial-gradient(circle at 13% 0%,rgba(74,124,171,.18),transparent 31%),
+      radial-gradient(circle at 91% 9%,rgba(92,109,126,.13),transparent 29%),
+      linear-gradient(160deg,#191e24,#252c34)!important;
   }
-  .header,.directionSwitch,.weatherCard,.route{background:rgba(37,44,52,.76)!important;border-color:rgba(255,255,255,.09)!important}
-  .circle{background:rgba(43,50,59,.78)!important;border-color:rgba(255,255,255,.09)!important}
-  .directionBtn.active{background:rgba(255,255,255,.10)!important;color:var(--ios-text)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.07)!important}
-  .routeStatus.ok{color:#7ad5a5!important}.routeStatus.warn{color:#efbd73!important}.routeStatus.bad{color:#ff858b!important}
+  .circle{background:rgba(42,49,58,.72)!important;border-color:rgba(255,255,255,.09)!important}
+  .directionSwitch{background:rgba(34,41,49,.72)!important;border-color:rgba(255,255,255,.08)!important}
+  .directionBtn.active{background:rgba(255,255,255,.10)!important;color:var(--t-text)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.07)!important}
+  .routes{background:rgba(36,43,51,.78)!important;border-color:rgba(255,255,255,.09)!important}
+  .route.recommended{background:linear-gradient(90deg,rgba(71,183,124,.10),transparent 55%)!important}
+  #normalCard .routeName:before{background:rgba(255,255,255,.055)!important;border-color:rgba(255,255,255,.08)!important}
+  .routeStatus.ok{color:#79d4a4!important}.routeStatus.warn{color:#efbd73!important}.routeStatus.bad{color:#ff8a90!important}
+  .weatherCard{background:rgba(36,43,51,.72)!important;border-color:rgba(255,255,255,.08)!important}
   .sheet{background:rgba(39,46,55,.96)!important;border-color:rgba(255,255,255,.09)!important}
-  input{background:rgba(27,33,40,.92)!important;color:var(--ios-text)!important}
-  .save{background:#e8eef5!important;color:#1f2933!important}
+  input{background:rgba(26,32,39,.92)!important;color:var(--t-text)!important}
+  .save{background:#e9eef4!important;color:#202a34!important}
 }
