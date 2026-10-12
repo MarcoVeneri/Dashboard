@@ -16,88 +16,11 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-
-      - name: Apply compact layout directly to CSS
+      - name: Append compact CSS overrides
         shell: bash
         run: |
-          cat >> ios27.css <<'EOF'
-
-/* === COMPACT UI DIRECT FIX v4 ===
-   Riduce realmente la hero "Scelta consigliata" e recupera spazio verticale. */
-@media(max-width:759px){
-  .app{padding:max(8px,env(safe-area-inset-top)) 9px max(14px,env(safe-area-inset-bottom))!important}
-  .app:before{margin:0 4px 5px!important;font-size:7.5px!important}
-  .header{padding:10px 11px!important;margin-bottom:7px!important;border-radius:20px!important}
-  .header>div:first-child{padding-left:42px!important}
-  .header>div:first-child:before{width:33px!important;height:33px!important;border-radius:10px!important;font-size:18px!important;top:1px!important}
-  h1:before{font-size:24px!important;margin-bottom:2px!important}
-  h1{font-size:12px!important;margin:1px 0 3px!important}
-  .eyebrow,.meta{font-size:7.5px!important}
-  .actions{gap:5px!important}
-  .circle{width:36px!important;height:36px!important;border-radius:11px!important;font-size:15px!important}
-  .directionSwitch{padding:4px!important;margin-bottom:7px!important;border-radius:16px!important;gap:4px!important}
-  .directionBtn{min-height:36px!important;font-size:8.5px!important;padding:0 4px!important;border-radius:13px!important}
-
-  .decision,
-  .decision.a1,
-  .decision.noa1,
-  .decision.tie,
-  .decision.loading{
-    min-height:0!important;
-    height:auto!important;
-    padding:9px 11px!important;
-    margin:0 0 7px!important;
-    border-radius:19px!important;
-  }
-  .decisionTop{grid-template-columns:36px minmax(0,1fr) auto!important;gap:8px!important;align-items:center!important}
-  .decisionIcon{width:36px!important;height:36px!important;border-radius:11px!important;font-size:18px!important}
-  .decisionKicker{font-size:6px!important;letter-spacing:.13em!important}
-  .decisionTitle{font-size:21px!important;line-height:.94!important;max-width:none!important;margin-top:1px!important;letter-spacing:-.04em!important}
-  .decisionSub{font-size:8px!important;line-height:1.18!important;margin-top:3px!important;max-width:none!important}
-  .live{position:relative!important;right:auto!important;top:auto!important;align-self:center!important;padding:4px 6px 4px 15px!important;font-size:6px!important}
-  .live:before{left:6px!important;width:4px!important;height:4px!important;box-shadow:0 0 0 2px rgba(35,230,255,.10),0 0 8px var(--f-cyan)!important}
-
-  .routes{gap:6px!important}
-  .route{min-height:0!important;padding:10px 11px 9px!important;border-radius:19px!important}
-  .route:after{left:11px!important;right:11px!important}
-  .routeName{font-size:7.5px!important;gap:7px!important}
-  .routeName:before{width:27px!important;height:27px!important;border-radius:9px!important;font-size:9px!important}
-  #normalCard .routeName:before{font-size:16px!important}
-  .routeMain{margin-top:7px!important;gap:7px!important}
-  .routeTime{font-size:48px!important}
-  .routeUnit{font-size:8px!important;margin:0 0 4px 4px!important}
-  .routeEta{font-size:22px!important}
-  .routeEta span{font-size:6px!important;margin-bottom:3px!important}
-  .routeStatus{margin-top:7px!important;padding:5px 8px!important;font-size:7.5px!important}
-  .routeStatus:before{width:5px!important;height:5px!important}
-  .routeDetail{margin-top:4px!important;font-size:7.8px!important;line-height:1.22!important}
-  .trafficBar{margin-top:5px!important;height:4px!important}
-  .diff{margin-top:4px!important;font-size:8.5px!important}
-}
-
-@media(max-width:380px){
-  .decisionTitle{font-size:20px!important}
-  .decisionTop{grid-template-columns:34px minmax(0,1fr) auto!important;gap:7px!important}
-  .decisionIcon{width:34px!important;height:34px!important;font-size:17px!important}
-  .routeTime{font-size:45px!important}
-  .routeEta{font-size:20px!important}
-}
-
-@media(min-width:760px){
-  .decision{min-height:0!important;height:auto!important;align-self:start!important;padding:15px!important;border-radius:24px!important}
-  .decisionTop{grid-template-columns:44px minmax(0,1fr) auto!important;gap:10px!important}
-  .decisionIcon{width:44px!important;height:44px!important;border-radius:14px!important;font-size:21px!important}
-  .decisionTitle{font-size:31px!important;line-height:.94!important}
-  .decisionSub{margin-top:5px!important;font-size:9px!important;line-height:1.25!important}
-  .route{min-height:0!important;padding:14px!important}
-}
-EOF
-
-      - name: Force fresh CSS version
-        shell: bash
-        run: |
+          echo 'LyogPT09IENPTVBBQ1QgVUkgRElSRUNUIEZJWCB2NCA9PT0gKi8KQG1lZGlhKG1heC13aWR0aDo3NTlweCl7CiAgLmFwcHtwYWRkaW5nOm1heCg4cHgsZW52KHNhZmUtYXJlYS1pbnNldC10b3ApKSA5cHggbWF4KDE0cHgsZW52KHNhZmUtYXJlYS1pbnNldC1ib3R0b20pKSFpbXBvcnRhbnR9CiAgLmFwcDpiZWZvcmV7bWFyZ2luOjAgNHB4IDVweCFpbXBvcnRhbnQ7Zm9udC1zaXplOjcuNXB4IWltcG9ydGFudH0KICAuaGVhZGVye3BhZGRpbmc6MTBweCAxMXB4IWltcG9ydGFudDttYXJnaW4tYm90dG9tOjdweCFpbXBvcnRhbnQ7Ym9yZGVyLXJhZGl1czoyMHB4IWltcG9ydGFudH0KICAuaGVhZGVyPmRpdjpmaXJzdC1jaGlsZHtwYWRkaW5nLWxlZnQ6NDJweCFpbXBvcnRhbnR9CiAgLmhlYWRlcj5kaXY6Zmlyc3QtY2hpbGQ6YmVmb3Jle3dpZHRoOjMzcHghaW1wb3J0YW50O2hlaWdodDozM3B4IWltcG9ydGFudDtib3JkZXItcmFkaXVzOjEwcHghaW1wb3J0YW50O2ZvbnQtc2l6ZToxOHB4IWltcG9ydGFudDt0b3A6MXB4IWltcG9ydGFudH0KICBoMTpiZWZvcmV7Zm9udC1zaXplOjI0cHghaW1wb3J0YW50O21hcmdpbi1ib3R0b206MnB4IWltcG9ydGFudH0KICBoMXtmb250LXNpemU6MTJweCFpbXBvcnRhbnQ7bWFyZ2luOjFweCAwIDNweCFpbXBvcnRhbnR9CiAgLmV5ZWJyb3csLm1ldGF7Zm9udC1zaXplOjcuNXB4IWltcG9ydGFudH0KICAuYWN0aW9uc3tnYXA6NXB4IWltcG9ydGFudH0KICAuY2lyY2xle3dpZHRoOjM2cHghaW1wb3J0YW50O2hlaWdodDozNnB4IWltcG9ydGFudDtib3JkZXItcmFkaXVzOjExcHghaW1wb3J0YW50O2ZvbnQtc2l6ZToxNXB4IWltcG9ydGFudH0KICAuZGlyZWN0aW9uU3dpdGNoe3BhZGRpbmc6NHB4IWltcG9ydGFudDttYXJnaW4tYm90dG9tOjdweCFpbXBvcnRhbnQ7Ym9yZGVyLXJhZGl1czoxNnB4IWltcG9ydGFudDtnYXA6NHB4IWltcG9ydGFudH0KICAuZGlyZWN0aW9uQnRue21pbi1oZWlnaHQ6MzZweCFpbXBvcnRhbnQ7Zm9udC1zaXplOjguNXB4IWltcG9ydGFudDtwYWRkaW5nOjAgNHB4IWltcG9ydGFudDtib3JkZXItcmFkaXVzOjEzcHghaW1wb3J0YW50fQoKICAuZGVjaXNpb24sLmRlY2lzaW9uLmExLC5kZWNpc2lvbi5ub2ExLC5kZWNpc2lvbi50aWUsLmRlY2lzaW9uLmxvYWRpbmd7CiAgICBtaW4taGVpZ2h0OjAhaW1wb3J0YW50OwogICAgaGVpZ2h0OmF1dG8haW1wb3J0YW50OwogICAgcGFkZGluZzo5cHggMTFweCFpbXBvcnRhbnQ7CiAgICBtYXJnaW46MCAwIDdweCFpbXBvcnRhbnQ7CiAgICBib3JkZXItcmFkaXVzOjE5cHghaW1wb3J0YW50OwogIH0KICAuZGVjaXNpb25Ub3B7Z3JpZC10ZW1wbGF0ZS1jb2x1bW5zOjM2cHggbWlubWF4KDAsMWZyKSBhdXRvIWltcG9ydGFudDtnYXA6OHB4IWltcG9ydGFudDthbGlnbi1pdGVtczpjZW50ZXIhaW1wb3J0YW50fQogIC5kZWNpc2lvbkljb257d2lkdGg6MzZweCFpbXBvcnRhbnQ7aGVpZ2h0OjM2cHghaW1wb3J0YW50O2JvcmRlci1yYWRpdXM6MTFweCFpbXBvcnRhbnQ7Zm9udC1zaXplOjE4cHghaW1wb3J0YW50fQogIC5kZWNpc2lvbktpY2tlcntmb250LXNpemU6NnB4IWltcG9ydGFudDtsZXR0ZXItc3BhY2luZzouMTNlbSFpbXBvcnRhbnR9CiAgLmRlY2lzaW9uVGl0bGV7Zm9udC1zaXplOjIxcHghaW1wb3J0YW50O2xpbmUtaGVpZ2h0Oi45NCFpbXBvcnRhbnQ7bWF4LXdpZHRoOm5vbmUhaW1wb3J0YW50O21hcmdpbi10b3A6MXB4IWltcG9ydGFudDtsZXR0ZXItc3BhY2luZzotLjA0ZW0haW1wb3J0YW50fQogIC5kZWNpc2lvblN1Yntmb250LXNpemU6OHB4IWltcG9ydGFudDtsaW5lLWhlaWdodDoxLjE4IWltcG9ydGFudDttYXJnaW4tdG9wOjNweCFpbXBvcnRhbnQ7bWF4LXdpZHRoOm5vbmUhaW1wb3J0YW50fQogIC5saXZle3Bvc2l0aW9uOnJlbGF0aXZlIWltcG9ydGFudDtyaWdodDphdXRvIWltcG9ydGFudDt0b3A6YXV0byFpbXBvcnRhbnQ7YWxpZ24tc2VsZjpjZW50ZXIhaW1wb3J0YW50O3BhZGRpbmc6NHB4IDZweCA0cHggMTVweCFpbXBvcnRhbnQ7Zm9udC1zaXplOjZweCFpbXBvcnRhbnR9CiAgLmxpdmU6YmVmb3Jle2xlZnQ6NnB4IWltcG9ydGFudDt3aWR0aDo0cHghaW1wb3J0YW50O2hlaWdodDo0cHghaW1wb3J0YW50O2JveC1zaGFkb3c6MCAwIDAgMnB4IHJnYmEoMzUsMjMwLDI1NSwuMTApLDAgMCA4cHggdmFyKC0tZi1jeWFuKSFpbXBvcnRhbnR9CgogIC5yb3V0ZXN7Z2FwOjZweCFpbXBvcnRhbnR9CiAgLnJvdXRle21pbi1oZWlnaHQ6MCFpbXBvcnRhbnQ7cGFkZGluZzoxMHB4IDExcHggOXB4IWltcG9ydGFudDtib3JkZXItcmFkaXVzOjE5cHghaW1wb3J0YW50fQogIC5yb3V0ZTphZnRlcntsZWZ0OjExcHghaW1wb3J0YW50O3JpZ2h0OjExcHghaW1wb3J0YW50fQogIC5yb3V0ZU5hbWV7Zm9udC1zaXplOjcuNXB4IWltcG9ydGFudDtnYXA6N3B4IWltcG9ydGFudH0KICAucm91dGVOYW1lOmJlZm9yZXt3aWR0aDoyN3B4IWltcG9ydGFudDtoZWlnaHQ6MjdweCFpbXBvcnRhbnQ7Ym9yZGVyLXJhZGl1czo5cHghaW1wb3J0YW50O2ZvbnQtc2l6ZTo5cHghaW1wb3J0YW50fQogICNub3JtYWxDYXJkIC5yb3V0ZU5hbWU6YmVmb3Jle2ZvbnQtc2l6ZToxNnB4IWltcG9ydGFudH0KICAucm91dGVNYWlue21hcmdpbi10b3A6N3B4IWltcG9ydGFudDtnYXA6N3B4IWltcG9ydGFudH0KICAucm91dGVUaW1le2ZvbnQtc2l6ZTo0OHB4IWltcG9ydGFudH0KICAucm91dGVVbml0e2ZvbnQtc2l6ZTo4cHghaW1wb3J0YW50O21hcmdpbjowIDAgNHB4IDRweCFpbXBvcnRhbnR9CiAgLnJvdXRlRXRhe2ZvbnQtc2l6ZToyMnB4IWltcG9ydGFudH0KICAucm91dGVFdGEgc3Bhbntmb250LXNpemU6NnB4IWltcG9ydGFudDttYXJnaW4tYm90dG9tOjNweCFpbXBvcnRhbnR9CiAgLnJvdXRlU3RhdHVze21hcmdpbi10b3A6N3B4IWltcG9ydGFudDtwYWRkaW5nOjVweCA4cHghaW1wb3J0YW50O2ZvbnQtc2l6ZTo3LjVweCFpbXBvcnRhbnR9CiAgLnJvdXRlU3RhdHVzOmJlZm9yZXt3aWR0aDo1cHghaW1wb3J0YW50O2hlaWdodDo1cHghaW1wb3J0YW50fQogIC5yb3V0ZURldGFpbHttYXJnaW4tdG9wOjRweCFpbXBvcnRhbnQ7Zm9udC1zaXplOjcuOHB4IWltcG9ydGFudDtsaW5lLWhlaWdodDoxLjIyIWltcG9ydGFudH0KICAudHJhZmZpY0JhcnttYXJnaW4tdG9wOjVweCFpbXBvcnRhbnQ7aGVpZ2h0OjRweCFpbXBvcnRhbnR9CiAgLmRpZmZ7bWFyZ2luLXRvcDo0cHghaW1wb3J0YW50O2ZvbnQtc2l6ZTo4LjVweCFpbXBvcnRhbnR9Cn0KQG1lZGlhKG1heC13aWR0aDozODBweCl7CiAgLmRlY2lzaW9uVGl0bGV7Zm9udC1zaXplOjIwcHghaW1wb3J0YW50fQogIC5kZWNpc2lvblRvcHtncmlkLXRlbXBsYXRlLWNvbHVtbnM6MzRweCBtaW5tYXgoMCwxZnIpIGF1dG8haW1wb3J0YW50O2dhcDo3cHghaW1wb3J0YW50fQogIC5kZWNpc2lvbkljb257d2lkdGg6MzRweCFpbXBvcnRhbnQ7aGVpZ2h0OjM0cHghaW1wb3J0YW50O2ZvbnQtc2l6ZToxN3B4IWltcG9ydGFudH0KICAucm91dGVUaW1le2ZvbnQtc2l6ZTo0NXB4IWltcG9ydGFudH0KICAucm91dGVFdGF7Zm9udC1zaXplOjIwcHghaW1wb3J0YW50fQp9CkBtZWRpYShtaW4td2lkdGg6NzYwcHgpewogIC5kZWNpc2lvbnttaW4taGVpZ2h0OjAhaW1wb3J0YW50O2hlaWdodDphdXRvIWltcG9ydGFudDthbGlnbi1zZWxmOnN0YXJ0IWltcG9ydGFudDtwYWRkaW5nOjE1cHghaW1wb3J0YW50O2JvcmRlci1yYWRpdXM6MjRweCFpbXBvcnRhbnR9CiAgLmRlY2lzaW9uVG9we2dyaWQtdGVtcGxhdGUtY29sdW1uczo0NHB4IG1pbm1heCgwLDFmcikgYXV0byFpbXBvcnRhbnQ7Z2FwOjEwcHghaW1wb3J0YW50fQogIC5kZWNpc2lvbkljb257d2lkdGg6NDRweCFpbXBvcnRhbnQ7aGVpZ2h0OjQ0cHghaW1wb3J0YW50O2JvcmRlci1yYWRpdXM6MTRweCFpbXBvcnRhbnQ7Zm9udC1zaXplOjIxcHghaW1wb3J0YW50fQogIC5kZWNpc2lvblRpdGxle2ZvbnQtc2l6ZTozMXB4IWltcG9ydGFudDtsaW5lLWhlaWdodDouOTQhaW1wb3J0YW50fQogIC5kZWNpc2lvblN1YnttYXJnaW4tdG9wOjVweCFpbXBvcnRhbnQ7Zm9udC1zaXplOjlweCFpbXBvcnRhbnQ7bGluZS1oZWlnaHQ6MS4yNSFpbXBvcnRhbnR9CiAgLnJvdXRle21pbi1oZWlnaHQ6MCFpbXBvcnRhbnQ7cGFkZGluZzoxNHB4IWltcG9ydGFudH0KfQo=' | base64 -d >> ios27.css
           sed -i 's/ios27\.css?v=3/ios27.css?v=4/g' index.html
-
       - name: Commit compact UI
         shell: bash
         run: |
