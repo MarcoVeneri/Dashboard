@@ -1,11 +1,14 @@
-const CACHE = "commute-dashboard-v37-19";
+const CACHE = "commute-dashboard-v38-future-ui";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
+  "./ios27.css?v=3",
   "./app.js",
   "./manifest.webmanifest",
-  "./icon.svg"
+  "./icon.svg",
+  "./icon-180.png",
+  "./icon-192.png"
 ];
 
 self.addEventListener("install", event => {
@@ -34,8 +37,7 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // Le pagine HTML/navigazioni devono essere network-first: evita che iPhone
-  // continui a mostrare una vecchia logica dei percorsi dopo un aggiornamento.
+  // HTML e navigazioni network-first per ricevere subito le nuove build.
   if (event.request.mode === "navigate" || url.pathname.endsWith(".html")) {
     event.respondWith(
       fetch(event.request).then(response => {
@@ -47,6 +49,7 @@ self.addEventListener("fetch", event => {
     return;
   }
 
+  // Asset statici: cache-first, con cache completamente rinnovata a ogni build.
   event.respondWith(
     caches.match(event.request).then(cached =>
       cached || fetch(event.request).then(response => {
